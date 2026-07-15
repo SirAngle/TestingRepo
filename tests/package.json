@@ -1,0 +1,8 @@
+{
+  "name": "simtlv-giga-calculator-smoke",
+  "private": true,
+  "description": "jsdom smoke harness for the SimTLV giga calculator. Usage: npm i && node smoke.js <build.html> [<other-build.html>] — with two files it also diffs their observable behavior (refactor safety net).",
+  "dependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

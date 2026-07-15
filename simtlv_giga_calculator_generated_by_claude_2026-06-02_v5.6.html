@@ -1,0 +1,5436 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מחשבון גיגה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Suez+One&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   מחשבון גיגה · UI redesign
+   Refined, professional light theme. Indigo primary with
+   emerald/rose accents kept distinct from the price badges.
+   ========================================================= */
+
+:root{
+  --bg:#e9ecf2;
+  --surface:#ffffff;
+  --surface-2:#f5f6fa;
+  --line:#e6e9f0;
+  --line-strong:#d7dbe6;
+  --text:#1b1f2a;
+  --muted:#6b7280;
+
+  --primary:#3b3fd8;
+  --primary-700:#2c2fb0;
+  --primary-100:#dfe1fb;
+  --primary-50:#eef0ff;
+
+  --accent:#0ea371;
+  --accent-700:#0a7d57;
+
+  --good-bg:#e7f7ee; --good:#0c7a44; --good-bd:#b8e6cb;
+  --bad-bg:#fdecef;  --bad:#b01030;  --bad-bd:#f6c2cd;
+  --same-bg:#eef1f6; --same:#4b5566; --same-bd:#d3d9e4;
+
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 2px 8px -4px rgba(16,24,40,.10);
+  --shadow-lg:0 2px 6px rgba(16,24,40,.06), 0 10px 24px -12px rgba(16,24,40,.20);
+  --radius:14px;
+}
+
+*{ box-sizing:border-box; }
+
+html{ -webkit-text-size-adjust:100%; }
+
+body{
+  font-family:'Assistant', system-ui, Arial, sans-serif;
+  color:var(--text);
+  font-size:13px;
+  line-height:1.45;
+  direction:rtl;
+  margin:0;
+  padding:0;
+  height:100vh;
+  overflow:hidden;
+  background:var(--bg);
+}
+
+/* ===== Ops-terminal shell: ink topbar + full-width content ===== */
+:root{
+  --ink:#101319;
+  --ink-2:#1a1f2a;
+  --ink-line:rgba(255,255,255,.12);
+  --chip-gold:linear-gradient(135deg,#e8c66a 0%,#c9a24a 45%,#f0d78a 100%);
+}
+.app{
+  display:flex; flex-direction:column;
+  height:100vh; width:100vw;
+  position:relative; z-index:1;
+}
+.topbar{
+  flex:0 0 auto;
+  display:flex; align-items:center; gap:14px;
+  height:48px; padding:0 14px;
+  background:var(--ink);
+  color:#e8ecf4;
+  border-bottom:1px solid var(--ink-line);
+}
+.brand{ display:flex; align-items:center; gap:9px; flex:0 0 auto; }
+.brand-name{ font-family:'Suez One',serif; font-size:16px; color:#fff; letter-spacing:.01em; }
+
+/* Signature: SIM-chip glyph (gold contact pad) */
+.sim-chip{
+  width:26px; height:20px; flex:none; position:relative;
+  background:var(--chip-gold);
+  border-radius:5px 5px 5px 9px;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.4);
+}
+.sim-chip::before{
+  content:""; position:absolute; inset:4px 5px;
+  border:1px solid rgba(80,55,10,.55); border-radius:3px;
+  background:
+    linear-gradient(rgba(80,55,10,.55), rgba(80,55,10,.55)) 50% 0/1px 100% no-repeat,
+    linear-gradient(rgba(80,55,10,.55), rgba(80,55,10,.55)) 0 50%/100% 1px no-repeat;
+}
+.sim-chip.small{ width:20px; height:15px; border-radius:4px 4px 4px 7px; }
+.sim-chip.small::before{ inset:3px 4px; }
+
+/* Topbar: search */
+.tb-search{ flex:0 0 240px; }
+.tb-search .search-wrap{ position:relative; }
+.tb-search input{
+  width:100%; box-sizing:border-box;
+  background:var(--ink-2); color:#e8ecf4;
+  border:1px solid var(--ink-line); border-radius:9px;
+  padding:7px 30px 7px 10px; font-size:12.5px; font-family:inherit;
+}
+.tb-search input::placeholder{ color:#8a93a6; }
+.tb-search input:focus{ outline:none; border-color:var(--primary); }
+.tb-search .search-icon{
+  position:absolute; inset-inline-start:auto; inset-inline-end:9px; top:50%;
+  transform:translateY(-50%); width:14px; height:14px; color:#8a93a6; pointer-events:none;
+}
+.tb-search .suggestions{ top:calc(100% + 6px); }
+
+/* Topbar: selected chips strip (scrolls horizontally, never wraps the bar) */
+.tb-chips{
+  flex:1 1 auto; min-width:0;
+  display:flex; align-items:center; gap:8px;
+}
+.tb-chips .chips{
+  margin:0; flex:1 1 auto; min-width:0;
+  display:flex; flex-wrap:nowrap; gap:6px;
+  overflow-x:auto; overflow-y:hidden; padding:2px 0;
+  scrollbar-width:thin;
+}
+.tb-chips .chips::-webkit-scrollbar{ height:5px; }
+.tb-chips .chips::-webkit-scrollbar-thumb{ background:var(--ink-line); border-radius:99px; }
+.tb-chips .chip{ flex:0 0 auto; }
+
+/* Topbar: options cluster */
+.tb-options{ flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+.tb-options .opt-switch{ color:#c6cdda; border-color:var(--ink-line); background:var(--ink-2); }
+.tb-options .opt-qty{ color:#c6cdda; border-color:var(--ink-line); background:var(--ink-2); }
+.tb-options .opt-qty input{ background:var(--ink); color:#e8ecf4; border-color:var(--ink-line); }
+.tb-options .opt-btn{
+  background:var(--ink-2); color:#c6cdda; border:1px solid var(--ink-line);
+}
+.tb-options .opt-btn.is-on{ color:#fff; border-color:var(--primary); }
+.json-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 11px; border-radius:9px; cursor:pointer;
+  background:var(--ink-2); color:#e8ecf4; border:1px solid var(--ink-line);
+  font-family:'Assistant'; font-weight:700; font-size:12px; transition:all .15s;
+}
+.json-btn:hover{ border-color:var(--chip-gold); background:#232a38; }
+
+/* Status line under topbar — collapses when empty */
+.topbar-status{ margin:0; padding:0 14px; font-size:11.5px; }
+.topbar-status:empty{ display:none; }
+.topbar-status:not(:empty){ padding-top:6px; }
+
+/* Content */
+.content{
+  flex:1 1 auto; min-height:0;
+  overflow-y:auto; overflow-x:hidden;
+  padding:12px 14px 70px;
+}
+.content::-webkit-scrollbar{ width:9px; }
+.content::-webkit-scrollbar-thumb{
+  background:var(--line-strong); border-radius:999px; border:2px solid transparent; background-clip:padding-box;
+}
+
+/* ===== Cart: floating chip badge + drawer ===== */
+.cart-fab{
+  position:fixed; bottom:18px; inset-inline-start:18px; z-index:800;
+  display:flex; align-items:center; gap:8px;
+  padding:10px 14px; border-radius:999px; cursor:pointer;
+  background:var(--ink); color:#fff; border:1px solid var(--ink-line);
+  font-family:'Assistant'; font-weight:800; font-size:14px;
+  box-shadow:0 6px 20px rgba(16,19,25,.35);
+  transition:transform .15s, box-shadow .15s;
+}
+.cart-fab:hover{ transform:translateY(-2px); box-shadow:0 10px 26px rgba(16,19,25,.42); }
+.cart-fab-count{
+  min-width:20px; height:20px; padding:0 6px; border-radius:999px;
+  display:grid; place-items:center; font-size:12px;
+  background:var(--ink-2); color:#8a93a6;
+}
+.cart-fab.has-items .cart-fab-count{ background:var(--accent); color:#fff; }
+.cart-drawer{
+  position:fixed; top:0; bottom:0; right:0; z-index:790;
+  width:360px; max-width:92vw;
+  background:#fff; border-left:1px solid var(--line-strong);
+  box-shadow:-14px 0 40px rgba(16,19,25,.18);
+  transform:translateX(105%);
+  transition:transform .22s ease;
+  display:flex; flex-direction:column;
+}
+.cart-drawer.open{ transform:translateX(0); }
+.cart-drawer-head{
+  flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; background:var(--ink); color:#fff;
+  font-family:'Suez One',serif; font-size:15px;
+}
+.cart-drawer-close{
+  background:transparent; border:0; color:#c6cdda; font-size:15px; cursor:pointer;
+  padding:4px 8px; border-radius:7px;
+}
+.cart-drawer-close:hover{ background:var(--ink-2); color:#fff; }
+.cart-drawer > #cart{ flex:1 1 auto; overflow-y:auto; padding:12px 14px; }
+
+/* Empty states */
+.cart-empty{
+  text-align:center; color:var(--muted); font-size:12.5px; line-height:1.7;
+  padding:34px 16px; border:1.5px dashed var(--line-strong); border-radius:var(--radius);
+  background:rgba(245,246,250,.6);
+}
+.cart-empty .ce-emoji{ font-size:26px; display:block; margin-bottom:7px; opacity:.7; }
+.center-empty{
+  height:100%; min-height:60vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; color:var(--muted); gap:10px;
+}
+.center-empty .ce-emoji{ font-size:46px; opacity:.6; }
+.center-empty h2{ font-family:'Suez One',serif; font-size:22px; color:var(--text); margin:0; }
+.center-empty p{ margin:0; font-size:13px; max-width:340px; }
+
+.container{
+  position:relative;
+  z-index:1;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* staggered entrance */
+@keyframes rise{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+.container > *{ animation:rise .5s ease both; }
+.container > *:nth-child(2){ animation-delay:.06s; }
+.container > *:nth-child(3){ animation-delay:.12s; }
+.container > *:nth-child(4){ animation-delay:.18s; }
+
+/* ---------- Loading overlay ---------- */
+#loading{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(233,236,242,.82);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  font-size:16px;
+}
+.loading-inner{
+  display:flex; align-items:center; gap:12px;
+  background:#fff; border:1px solid var(--line);
+  box-shadow:var(--shadow); padding:16px 22px; border-radius:14px;
+  font-weight:600; color:var(--text);
+}
+.spinner{
+  width:22px; height:22px; border-radius:50%;
+  border:3px solid var(--primary-100); border-top-color:var(--primary);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* ---------- Header ---------- */
+.brand{ display:flex; align-items:center; gap:14px; }
+.brand-mark{
+  font-size:30px; line-height:1;
+  width:58px; height:58px; flex:none;
+  display:grid; place-items:center;
+  background:linear-gradient(150deg, #ffffff, #eef0ff);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+}
+/* ---------- Panels (toolbar / controls) ---------- */
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin-bottom:14px;
+}
+/* ---------- Buttons ---------- */
+button{
+  font-family:inherit; font-weight:600;
+  color:var(--text);
+  background:#fff;
+  border:1px solid var(--line-strong);
+  border-radius:9px;
+  padding:6px 11px;
+  font-size:12.5px; line-height:1.2;
+  cursor:pointer;
+  transition:background .15s, color .15s, border-color .15s, box-shadow .15s, transform .12s;
+}
+button:hover{
+  background:var(--surface-2);
+  border-color:var(--primary);
+  color:var(--primary);
+  transform:translateY(-1px);
+  box-shadow:var(--shadow-sm);
+}
+button:active{ transform:translateY(0); }
+button:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+
+.btn-primary{
+  background:var(--primary); color:#fff;
+  border-color:transparent;
+  padding:11px 18px; font-size:13.5px; border-radius:11px;
+  box-shadow:0 1px 2px rgba(59,63,216,.25);
+}
+.btn-primary:hover{
+  background:var(--primary-700); color:#fff; border-color:transparent;
+  box-shadow:0 8px 18px -8px rgba(59,63,216,.55);
+}
+
+/* ---------- Fields & inputs ---------- */
+input{
+  width:100%;
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--line-strong);
+  border-radius:11px;
+  padding:11px 13px;
+  font-size:14px; font-family:inherit;
+  margin:0;
+  transition:border-color .15s, box-shadow .15s, background .15s;
+}
+input::placeholder{ color:#9aa1ad; }
+input:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 4px var(--primary-50);
+  background:#fff;
+}
+
+.search-wrap{ position:relative; }
+.search-icon{
+  position:absolute; inset-inline-start:13px; top:50%;
+  transform:translateY(-50%);
+  width:18px; height:18px; color:#9aa1ad; pointer-events:none;
+}
+#search{ padding-inline-start:40px; }
+
+.custom-row{ display:flex; gap:8px; align-items:stretch; }
+.custom-row #customAmount{ flex:1; }
+.custom-row .btn-primary{ white-space:nowrap; }
+
+#selected:not(:empty) + .hint{ display:none; }
+
+/* ---------- Suggestions dropdown ---------- */
+.suggestions{
+  position:absolute; inset-inline:0; top:calc(100% + 6px); z-index:60;
+  background:#fff;
+  color:var(--text); /* explicit: inside the dark topbar it would inherit near-white */
+  border:1px solid var(--line-strong);
+  border-radius:12px;
+  box-shadow:var(--shadow-lg);
+  max-height:280px; overflow:auto;
+  display:none; padding:5px;
+}
+.suggestions div{
+  padding:9px 11px; border-radius:8px; cursor:pointer;
+  font-size:13.5px; transition:background .12s, color .12s;
+}
+.suggestions div:hover{ background:var(--primary-50); color:var(--primary-700); }
+.suggestions::-webkit-scrollbar{ width:10px; }
+.suggestions::-webkit-scrollbar-thumb{
+  background:#c7cdd9; border-radius:999px; border:2px solid #fff;
+}
+
+/* ---------- Selected chips ---------- */
+.chips{ display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.clear-countries-btn{
+  display:none; align-items:center; gap:4px;
+  font-family:'Assistant'; font-size:10.5px; font-weight:700;
+  padding:3px 9px; border-radius:999px; cursor:pointer;
+  background:var(--bad-bg); color:var(--bad); border:1px solid var(--bad-bd);
+  text-transform:none; letter-spacing:0; line-height:1.4;
+}
+.clear-countries-btn:hover{ background:#fbd9e1; }
+.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--primary-50); color:var(--primary-700);
+  border:1px solid var(--primary-100);
+  padding-block:6px; padding-inline-start:12px; padding-inline-end:6px;
+  border-radius:999px;
+  font-size:13px; font-weight:600;
+}
+.chip span{
+  margin:0; cursor:pointer;
+  width:18px; height:18px; flex:none;
+  display:grid; place-items:center;
+  border-radius:50%;
+  background:rgba(59,63,216,.12); color:var(--primary-700);
+  font-size:11px; line-height:1;
+  transition:background .15s, color .15s, transform .2s;
+}
+.chip span:hover{ background:var(--bad); color:#fff; transform:rotate(90deg); }
+
+/* ---------- Status banner ---------- */
+.status{
+  display:none; margin-top:12px;
+  background:var(--primary-50);
+  border:1px solid var(--primary-100);
+  color:#33406b;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:12.5px; line-height:1.45;
+  white-space:pre-wrap;
+  direction:ltr; text-align:left;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Results ---------- */
+.results-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+  gap:10px;
+  margin-top:0;
+  align-content:start;
+  align-items:start;
+}
+.block{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:11px 12px;
+  transition:box-shadow .2s, transform .2s, border-color .2s;
+}
+.block:hover{ box-shadow:var(--shadow-lg); }
+.block h3{
+  font-family:'Assistant'; font-weight:800;
+  font-size:14px; margin:0 0 6px;
+}
+.block > button{ margin-bottom:8px; }
+.block > button + button{ margin-inline-start:6px; }
+
+pre{
+  font-family:'Assistant', system-ui, sans-serif;
+  margin:6px 0 0;
+  padding:8px 10px;
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:9px;
+  font-size:12px; line-height:1.5;
+  color:#2a2f3a;
+  white-space:pre-wrap;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Global (new API) cards ---------- */
+.global-clean-card{ grid-column:1 / -1; padding:12px 14px; }
+.global-clean-head{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:9px; margin-bottom:10px;
+}
+.global-clean-head h3{
+  margin:0; font-family:'Assistant'; font-weight:800; font-size:15px;
+}
+.global-clean-subtitle{
+  color:var(--muted); font-size:12px; margin-top:4px;
+  max-width:62ch; line-height:1.45;
+}
+.global-clean-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(280px, 1fr));
+  gap:12px;
+}
+.global-sim-column{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px; min-width:0;
+}
+.global-sim-titlebar{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin-bottom:8px;
+}
+.global-sim-title{ font-size:14px; font-weight:800; color:var(--text); }
+.global-copy-btn{ font-size:12px; padding:5px 9px; }
+
+.global-lines{ display:grid; gap:0; }
+.global-line{
+  display:grid; grid-template-columns:minmax(0,1fr) auto;
+  align-items:center; gap:10px;
+  padding:8px 6px; margin-inline:-6px;
+  border-bottom:1px solid var(--line);
+  border-radius:8px;
+  font-size:13px; line-height:1.3;
+  transition:background .12s;
+}
+.global-line:hover{ background:rgba(59,63,216,.045); }
+.global-line:last-child{ border-bottom:0; }
+.global-line-text{ min-width:0; overflow-wrap:normal; word-break:keep-all; font-weight:500; display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+
+.global-links{ display:flex; gap:6px; white-space:nowrap; }
+.global-links a{
+  display:inline-flex; align-items:center;
+  border:1px solid var(--line-strong); background:#fff; color:var(--text);
+  text-decoration:none; border-radius:999px;
+  padding:4px 11px; font-size:12px; font-weight:600;
+  transition:background .15s, color .15s, border-color .15s, box-shadow .15s, transform .12s;
+}
+.global-links a:hover{
+  background:var(--primary); color:#fff; border-color:var(--primary);
+  transform:translateY(-1px); box-shadow:var(--shadow-sm);
+}
+
+.price-badge{
+  display:inline-block; border-radius:999px;
+  padding:2px 8px; margin-inline-start:6px;
+  font-size:11px; font-weight:700; line-height:1.4;
+  vertical-align:middle;
+}
+.price-badge.good{ background:var(--good-bg); color:var(--good); border:1px solid var(--good-bd); }
+.price-badge.bad{  background:var(--bad-bg);  color:var(--bad);  border:1px solid var(--bad-bd); }
+.price-badge.same{ background:var(--same-bg); color:var(--same); border:1px solid var(--same-bd); }
+
+.global-empty,
+.global-error-text{ color:var(--muted); font-size:12.5px; padding:6px 0; }
+.global-error-text{ color:var(--bad); }
+
+.global-loading-card{ grid-column:1 / -1; }
+.global-loading-card h3{ font-weight:800; margin:0 0 6px; }
+.global-loading-card p{ color:var(--muted); margin:0 0 8px; }
+
+/* ---------- Quick-order rows (eSIM / physical) ---------- */
+.order-row{
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  margin-bottom:7px;
+}
+.order-gb{
+  min-width:48px; font-weight:800; font-size:13px;
+  color:var(--text); font-variant-numeric:tabular-nums;
+}
+.oa-open, .oa-copy, .lk-open, .lk-copy{
+  font-size:12px; padding:5px 10px; border-radius:8px; line-height:1.2;
+}
+.oa-open{ background:var(--primary); color:#fff; border-color:transparent; }
+.oa-open:hover{ background:var(--primary-700); color:#fff; border-color:transparent; }
+.oa-copy{ background:#fff; color:var(--primary-700); border-color:var(--primary-100); }
+.oa-copy:hover{ background:var(--primary-50); color:var(--primary-700); border-color:var(--primary); }
+
+/* ---------- Global checkout link groups ---------- */
+.link-group{
+  display:inline-flex; align-items:center; gap:4px;
+  background:#fff; border:1px solid var(--line-strong);
+  border-radius:999px; padding:2px 4px 2px 8px;
+}
+.link-group + .link-group{ margin-inline-start:6px; }
+.link-label{ font-size:11.5px; font-weight:700; color:var(--muted); }
+.lk-open, .lk-copy{
+  padding:3px 8px; border-radius:999px; font-size:12px;
+}
+.lk-open{ background:var(--primary); color:#fff; border-color:transparent; text-decoration:none; }
+.lk-open:hover{ background:var(--primary-700); color:#fff; transform:translateY(-1px); box-shadow:var(--shadow-sm); }
+.lk-copy{ background:var(--surface-2); color:var(--primary-700); border-color:var(--line-strong); }
+.lk-copy:hover{ background:var(--primary-50); color:var(--primary-700); border-color:var(--primary); }
+
+/* ---------- Zone filter note ---------- */
+.zone-note{
+  grid-column:1 / -1;
+  display:flex; align-items:flex-start; gap:12px;
+  background:linear-gradient(180deg, #fffaf0, #fff6e6);
+  border:1px solid #f3dca8;
+}
+.zone-note-badge{
+  flex:none; align-self:center;
+  background:#a9610b; color:#fff;
+  font-weight:800; font-size:12px;
+  padding:5px 11px; border-radius:999px;
+  white-space:nowrap;
+}
+.zone-note-text{ font-size:13px; line-height:1.5; color:#5b4310; }
+.zone-note-text b{ font-weight:800; color:#3f2f08; }
+
+/* ---------- Card header (title + actions) ---------- */
+.block-tools{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap; margin-bottom:10px;
+}
+.block-tools h3{ margin:0; }
+.block-actions{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.copy-btn{ font-size:12px; padding:6px 10px; }
+.zone-pill{
+  display:inline-block; margin-inline-start:6px;
+  background:var(--primary-50); color:var(--primary-700);
+  border:1px solid var(--primary-100);
+  border-radius:999px; padding:1px 9px;
+  font-size:12px; font-weight:700; vertical-align:middle;
+}
+
+/* ---------- Simplify on/off switch ---------- */
+.simplify-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-weight:700; font-size:12px; padding:5px 11px;
+  border-radius:999px;
+}
+.simplify-btn .sw{
+  width:26px; height:15px; border-radius:999px; flex:none;
+  position:relative; background:#c7ccd6; transition:background .18s;
+}
+.simplify-btn .sw::after{
+  content:""; position:absolute; top:2px; inset-inline-end:2px;
+  width:11px; height:11px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.25);
+  transition:inset-inline-end .18s;
+}
+.simplify-btn.is-on{
+  background:var(--good-bg); color:var(--accent-700); border-color:var(--good-bd);
+}
+.simplify-btn.is-on .sw{ background:var(--accent); }
+.simplify-btn.is-on .sw::after{ inset-inline-end:13px; }
+.simplify-btn.is-off{ background:#fff; color:var(--muted); border-color:var(--line-strong); }
+.simplify-btn.is-on:hover{ background:#daf3e5; color:var(--accent-700); border-color:var(--accent); transform:translateY(-1px); }
+.simplify-btn.is-off:hover{ background:var(--surface-2); color:var(--text); border-color:var(--primary); transform:translateY(-1px); }
+
+/* ---------- Display & cart options bar ---------- */
+.options-bar{
+  display:flex; align-items:center; flex-wrap:wrap; gap:10px;
+  margin-top:14px; padding-top:14px;
+  border-top:1px dashed var(--line-strong);
+}
+.opt-btn{ font-size:12.5px; font-weight:700; padding:8px 13px; border-radius:10px; }
+.opt-btn.is-on{ background:var(--good-bg); color:var(--accent-700); border-color:var(--good-bd); }
+.opt-btn.is-on:hover{ background:#daf3e5; border-color:var(--accent); color:var(--accent-700); transform:translateY(-1px); }
+.opt-btn.is-off{ background:var(--surface-2); color:var(--muted); }
+.opt-btn.is-off:hover{ background:#fff; border-color:var(--primary); color:var(--text); transform:translateY(-1px); }
+
+/* checkbox-driven switch */
+.opt-switch{
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+  font-size:12.5px; font-weight:600; color:var(--text);
+  background:#fff; border:1px solid var(--line-strong);
+  border-radius:10px; padding:7px 12px; user-select:none;
+}
+.opt-switch input{ position:absolute; opacity:0; width:0; height:0; }
+.opt-switch .sw{
+  width:30px; height:17px; border-radius:999px; flex:none; position:relative;
+  background:#c7ccd6; transition:background .18s;
+}
+.opt-switch .sw::after{
+  content:""; position:absolute; top:2px; inset-inline-end:2px;
+  width:13px; height:13px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.25); transition:inset-inline-end .18s;
+}
+.opt-switch input:checked + .sw{ background:var(--primary); }
+.opt-switch input:checked + .sw::after{ inset-inline-end:15px; }
+.opt-switch input:focus-visible + .sw{ outline:2px solid var(--primary); outline-offset:2px; }
+
+.opt-qty{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12.5px; font-weight:600; color:var(--text);
+  background:#fff; border:1px solid var(--line-strong);
+  border-radius:10px; padding:5px 12px;
+}
+.opt-qty input{
+  width:64px; padding:5px 8px; border-radius:8px;
+  border:1px solid var(--line-strong); font-size:13px;
+  font-variant-numeric:tabular-nums; text-align:center;
+}
+
+
+
+/* ---------- Manual website savings emphasis ---------- */
+.global-clean-card.manual-priority{
+  border-color:#b8e6cb;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 18px 40px -20px rgba(14,163,113,.40);
+}
+.global-line.is-cheaper{
+  background:linear-gradient(90deg, rgba(14,163,113,.09), rgba(255,255,255,0));
+  border-inline-start:4px solid var(--accent);
+  padding-inline-start:9px;
+}
+.global-line.is-cheaper:hover{ background:rgba(14,163,113,.11); }
+.price-badge.best{
+  background:#0ea371;
+  color:#fff;
+  border-color:#0ea371;
+  box-shadow:0 4px 12px -8px rgba(14,163,113,.75);
+}
+.purchase-actions{
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.number-order-group{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:#fff;
+  border:1px solid var(--line-strong);
+  border-radius:999px;
+  padding:2px 4px 2px 8px;
+  white-space:nowrap;
+}
+.number-order-group input{
+  width:54px;
+  height:26px;
+  padding:3px 6px;
+  border-radius:999px;
+  font-size:12px;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.number-order-group .lk-set{
+  padding:3px 9px;
+  border-radius:999px;
+  background:var(--accent);
+  border-color:transparent;
+  color:#fff;
+  font-size:12px;
+}
+.number-order-group .lk-set:hover{ background:var(--accent-700); color:#fff; border-color:transparent; }
+
+/* ---------- Generated order builder ---------- */
+.order-builder-card{
+  grid-column:auto;
+  border-color:#c9cef8;
+  box-shadow:none;
+  padding:0;
+  background:transparent;
+  border:0;
+}
+.order-builder-card:hover{ box-shadow:none; }
+.order-builder-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:12px;
+  margin-bottom:12px;
+}
+.order-builder-head h3{ margin:0; font-size:16px; font-weight:800; }
+.order-builder-lines{ display:grid; gap:8px; }
+.order-builder-line{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:8px;
+  align-items:center;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+  border-radius:11px;
+}
+.order-builder-label{ font-weight:700; font-size:13px; min-width:0; overflow-wrap:anywhere; }
+.order-builder-price{ direction:ltr; font-weight:800; font-size:13px; color:var(--accent-700); white-space:nowrap; }
+.order-builder-remove{ padding:4px 9px; border-radius:999px; color:var(--bad); }
+.order-builder-footer{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:10px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed var(--line-strong);
+}
+.order-builder-total{ font-weight:800; color:var(--text); font-size:15px; text-align:center; }
+.order-builder-actions{ display:flex; flex-direction:column; gap:8px; }
+.order-builder-actions button{ width:100%; justify-content:center; }
+.order-builder-actions .run-order{ background:var(--accent); color:#fff; border-color:transparent; font-size:14px; padding:12px; }
+.order-builder-actions .run-order:hover{ background:var(--accent-700); color:#fff; border-color:transparent; }
+
+/* ---------- Integrated order runner ---------- */
+.order-overlay{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(10,15,26,.68);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+}
+.order-overlay.is-open{ display:flex; }
+.order-runner-card{
+  width:min(440px, 100%);
+  direction:ltr;
+  text-align:center;
+  background:#111827;
+  color:#e8f0f8;
+  border:1px solid rgba(26,157,224,.18);
+  border-radius:20px;
+  padding:32px 30px;
+  box-shadow:0 24px 70px -32px rgba(0,0,0,.75);
+  position:relative;
+  overflow:hidden;
+}
+.order-runner-card::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, #1a9de0, transparent);
+}
+.order-runner-logo{ font-size:24px; font-weight:800; color:#fff; letter-spacing:-.3px; }
+.order-runner-logo span{ color:#1a9de0; }
+.order-runner-sub{ font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#7a95b0; margin:2px 0 26px; }
+.order-runner-icon{
+  width:62px; height:62px; margin:0 auto 16px;
+  display:grid; place-items:center;
+  border-radius:50%;
+  background:rgba(26,157,224,.10);
+  border:1px solid rgba(26,157,224,.30);
+  font-size:27px;
+}
+.order-runner-title{ font-size:21px; font-weight:800; color:#fff; margin-bottom:6px; }
+.order-runner-status{ color:#7a95b0; font-size:13px; line-height:1.5; min-height:38px; }
+.order-runner-items{
+  margin:20px 0 0;
+  text-align:left;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:12px;
+  max-height:180px;
+  overflow:auto;
+}
+.order-runner-item{
+  display:flex; gap:9px; align-items:center;
+  padding:5px 0;
+  color:#e8f0f8;
+  font-size:12.5px;
+}
+.order-runner-item + .order-runner-item{ border-top:1px solid rgba(255,255,255,.055); }
+.order-runner-dot{ width:6px; height:6px; border-radius:50%; background:#1a9de0; flex:none; }
+.order-runner-qty{ margin-left:auto; color:#7a95b0; font-size:11px; }
+.order-runner-progress{ display:flex; justify-content:center; gap:7px; margin-top:18px; }
+.order-runner-progress span{ width:8px; height:8px; border-radius:50%; background:rgba(26,157,224,.22); }
+.order-runner-progress span.done{ background:#22d3a0; }
+.order-runner-progress span.active{ background:#1a9de0; transform:scale(1.35); }
+.order-runner-close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:30px; height:30px;
+  border-radius:50%;
+  background:rgba(255,255,255,.06);
+  color:#e8f0f8;
+  border:1px solid rgba(255,255,255,.08);
+}
+body.order-mode{
+  padding:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#0a0f1a;
+}
+body.order-mode::before{ display:none; }
+body.order-mode .app{ display:block; max-width:460px; width:100%; height:auto; padding:20px; }
+body.order-mode .cart-fab,
+body.order-mode .cart-drawer,
+body.order-mode .topbar,
+body.order-mode .tabs,
+body.order-mode .topbar-status{ display:none; }
+.standalone-order-card{ width:100%; }
+.standalone-order-card .order-runner-card{ width:100%; }
+.standalone-order-card .run-order{ margin-top:20px; width:100%; padding:14px 20px; border-radius:12px; font-weight:800; background:#1a9de0; color:#fff; border:0; }
+.standalone-order-card .run-order:hover{ background:#0d7ab8; color:#fff; }
+
+
+
+/* ---------- Top-up scanner ---------- */
+.topup-scanner-card{
+  grid-column:1 / -1;
+  border-color:#c9cef8;
+  box-shadow:0 1px 2px rgba(16,24,40,.05), 0 18px 40px -22px rgba(59,63,216,.42);
+}
+.topup-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:12px;
+  margin-bottom:13px;
+}
+.topup-head h3{ margin:0; font-size:17px; font-weight:800; }
+.topup-controls{
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+}
+.topup-controls .version-select-wrap{ flex:0 0 auto; }
+.topup-controls .version-select-wrap select{ width:auto; min-width:118px; padding:9px 12px; }
+.topup-iccid-input{
+  flex:1 1 auto; min-width:0;
+  direction:ltr; text-align:left; font-variant-numeric:tabular-nums;
+  background:#fff; border:1px solid var(--line-strong); border-radius:11px;
+  padding:9px 12px; font-size:13px; color:var(--text);
+}
+.topup-head-countries{ font-weight:500; color:var(--muted); font-size:13px; }
+.topup-scan-btn{
+  flex:0 0 auto;
+  background:var(--primary);
+  color:#fff;
+  border-color:transparent;
+  padding:9px 14px;
+  border-radius:11px;
+  font-size:15px;
+}
+.topup-scan-btn:hover{ background:var(--primary-700); color:#fff; border-color:transparent; }
+.topup-status{
+  padding:10px 12px;
+  border-radius:11px;
+  background:var(--primary-50);
+  border:1px solid var(--primary-100);
+  color:#33406b;
+  font-size:12.5px;
+  line-height:1.45;
+  margin-bottom:12px;
+}
+.topup-status.error{
+  background:var(--bad-bg);
+  border-color:var(--bad-bd);
+  color:var(--bad);
+}
+.topup-status.loading{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.topup-mini-spinner{
+  width:17px;
+  height:17px;
+  border-radius:50%;
+  border:2px solid var(--primary-100);
+  border-top-color:var(--primary);
+  animation:spin .8s linear infinite;
+  flex:none;
+}
+.topup-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-bottom:12px;
+}
+.topup-meta-bar{
+  display:flex; align-items:center; gap:10px;
+  margin:2px 0 12px;
+}
+.topup-meta-label{ font-size:12.5px; font-weight:700; color:var(--muted); }
+.topup-meta-label.ok{ color:var(--accent-700); }
+.topup-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));
+  gap:12px;
+}
+.topup-products{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+}
+.topup-products-titlebar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:8px;
+}
+.topup-products-title{ font-size:14px; font-weight:800; color:var(--text); }
+.topup-line{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:8px 6px;
+  margin-inline:-6px;
+  border-bottom:1px solid var(--line);
+  border-radius:8px;
+  font-size:13px;
+}
+.topup-line:last-child{ border-bottom:0; }
+.topup-line:hover{ background:rgba(59,63,216,.045); }
+.topup-line-text{ min-width:0; overflow-wrap:anywhere; font-weight:500; }
+.topup-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; white-space:nowrap; }
+.topup-order-tag{
+  display:inline-block;
+  margin-inline-start:6px;
+  background:#eef0ff;
+  color:var(--primary-700);
+  border:1px solid var(--primary-100);
+  border-radius:999px;
+  padding:2px 8px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.topup-select-wrap label,
+.topup-inventory label{
+  display:block;
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+.topup-select-wrap select{
+  width:100%;
+  background:#fff;
+  border:1px solid var(--line-strong);
+  border-radius:11px;
+  padding:10px 12px;
+  font-size:14px;
+  font-family:inherit;
+  color:var(--text);
+}
+.topup-inventory{
+  margin:10px 0 12px;
+  background:linear-gradient(180deg, #fbfcff, #f5f6fa);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+}
+.topup-inventory-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+.topup-inventory-title{ font-weight:800; font-size:13.5px; color:var(--text); }
+.topup-inventory-sub{ color:var(--muted); font-size:12px; margin-top:2px; line-height:1.45; }
+.topup-inventory textarea{
+  width:100%;
+  min-height:74px;
+  resize:vertical;
+  direction:ltr;
+  text-align:left;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size:12.5px;
+  line-height:1.45;
+  background:#fff;
+  color:var(--text);
+  border:1px solid var(--line-strong);
+  border-radius:10px;
+  padding:10px 11px;
+}
+.topup-inventory-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+  margin-top:9px;
+}
+.topup-inventory-actions button{ padding:8px 11px; border-radius:10px; }
+.topup-preload-main{ background:var(--accent); color:#fff; border-color:transparent; }
+.topup-preload-main:hover{ background:var(--accent-700); color:#fff; border-color:transparent; }
+.topup-cache-stat{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#fff;
+  border:1px solid var(--line-strong);
+  color:var(--muted);
+  border-radius:999px;
+  padding:5px 10px;
+  font-size:12px;
+  font-weight:700;
+}
+.topup-cache-stat.good{ color:var(--accent-700); background:var(--good-bg); border-color:var(--good-bd); }
+.topup-preload-progress{
+  margin-top:8px;
+  padding:9px 11px;
+  background:var(--primary-50);
+  border:1px solid var(--primary-100);
+  border-radius:10px;
+  color:#33406b;
+  font-size:12.5px;
+  line-height:1.45;
+}
+.topup-preload-progress.error{
+  background:var(--bad-bg);
+  border-color:var(--bad-bd);
+  color:var(--bad);
+}
+
+.topup-default-note{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+.topup-patterns{
+  margin-top:10px;
+  display:grid;
+  gap:6px;
+  background:#fff;
+  border:1px dashed var(--line-strong);
+  border-radius:11px;
+  padding:10px;
+}
+.topup-pattern-title{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.topup-pattern-row{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+  font-size:12.5px;
+  line-height:1.45;
+}
+.topup-pattern-name{
+  flex:0 0 auto;
+  font-weight:800;
+  color:var(--text);
+}
+.topup-pattern-value{
+  direction:ltr;
+  text-align:left;
+  color:#33406b;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap:anywhere;
+}
+.topup-quick-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:8px 0 12px;
+}
+.topup-quick-chip{
+  border-radius:999px;
+  padding:5px 9px;
+  background:#fff;
+  border:1px solid var(--line-strong);
+  color:var(--text);
+  font-size:12px;
+  font-weight:700;
+}
+.topup-quick-chip.cached{
+  background:var(--good-bg);
+  color:var(--accent-700);
+  border-color:var(--good-bd);
+}
+.topup-quick-chip.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+@media (max-width:760px){
+  .topup-controls{ grid-template-columns:1fr; }
+  .topup-line{ grid-template-columns:1fr; }
+  .topup-actions{ white-space:normal; }
+}
+
+/* ---------- Quick-order: compact inline-price chips ---------- */
+/* Gigaboost plans: a ledger — one fixed grid row per plan. Nothing wraps,
+   nothing squishes: GB | price | (flex space) | link | copy. */
+.plan-orders.grid{ display:flex; flex-direction:column; gap:2px; }
+.plan-orders.grid .order-row{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:8px;
+  margin-bottom:0;
+  background:transparent;
+  border:0;
+  border-radius:7px;
+  padding:3px 8px;
+  min-width:0;
+  flex:none;
+}
+.plan-orders.grid .order-row:nth-child(even){ background:rgba(16,19,25,.035); }
+.plan-orders.grid .order-row:hover{ background:rgba(47,107,255,.07); }
+.order-price{
+  direction:ltr; font-weight:800; font-size:12.5px;
+  color:var(--accent-700); white-space:nowrap;
+  margin-inline-end:0; text-align:start;
+}
+.plan-orders.grid .oa-open,
+.plan-orders.grid .oa-copy{ padding:3px 9px; font-size:11.5px; height:24px; line-height:1; flex:none; justify-self:end; }
+
+/* ---------- Reusable hover tooltip ---------- */
+.info-tip{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:50%; cursor:help; flex:none;
+  background:var(--surface-2); border:1px solid var(--line-strong);
+  color:var(--muted); font-size:12px; font-weight:800; position:relative;
+}
+.info-tip:hover{ background:#fff; color:var(--primary-700); border-color:var(--primary); }
+.info-tip:hover::after{
+  content:attr(data-tip);
+  position:absolute; top:calc(100% + 8px); right:0;
+  z-index:300; width:max-content; max-width:300px;
+  background:#1b1f2a; color:#fff; font-weight:500; font-size:12px; line-height:1.55;
+  padding:9px 12px; border-radius:10px; white-space:pre-line; text-align:right;
+  box-shadow:var(--shadow-lg); pointer-events:none;
+}
+
+/* ---------- Topup rows: horizontal grid (was one-per-row) ---------- */
+/* Topup packages: fixed geometry for muscle memory.
+   Two fixed columns (no auto-fill re-wrapping), rows sorted by GB, and every
+   row is the same grid: text | deal-slot(fixed) | link | copy | qty | set. */
+.topup-lines-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2px 18px;
+}
+.topup-line{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 118px 26px 26px 42px auto;
+  align-items:center;
+  gap:6px;
+  border:0; border-radius:8px; background:transparent;
+  margin-inline:0; padding:3px 9px; font-size:12.5px;
+  min-height:30px;
+}
+.topup-lines-grid .topup-line:nth-child(4n+1),
+.topup-lines-grid .topup-line:nth-child(4n+2){ background:rgba(16,19,25,.035); }
+.topup-lines-grid .topup-line:hover{ background:rgba(59,63,216,.07); }
+.topup-line-text{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  font-weight:700; min-width:0;
+}
+.tl-deal{
+  display:inline-flex; align-items:center; justify-content:flex-end; gap:3px;
+  min-width:0; overflow:hidden;
+}
+.tl-deal-label{
+  font-size:10.5px; font-weight:800; color:var(--accent-700);
+  background:var(--good-bg); border:1px solid var(--good-bd);
+  border-radius:999px; padding:1px 7px; white-space:nowrap;
+}
+.topup-line .lk-open,
+.topup-line .lk-copy{ height:24px; min-width:26px; padding:2px 6px; font-size:11px; line-height:1; }
+.topup-line .lk-set{ height:24px; padding:2px 10px; font-size:11.5px; line-height:1; }
+.topup-line .lk-open:disabled,
+.topup-line .lk-copy:disabled{ opacity:.25; cursor:default; }
+.tl-qty{
+  width:42px; height:24px; padding:2px 4px; font-size:11.5px;
+  text-align:center; border:1px solid var(--line-strong); border-radius:8px;
+  background:#fff; font-variant-numeric:tabular-nums;
+}
+.tl-qty:focus{ outline:none; border-color:var(--primary); }
+/* Missing plan slots: same geometry, unmistakably red */
+.topup-line.is-missing{
+  background:var(--bad-bg) !important;
+  border:1px dashed var(--bad-bd);
+}
+.topup-line.is-missing .topup-line-text{ color:var(--bad); font-weight:800; }
+.tl-missing-pad{ grid-column:3 / -1; }
+.topup-products-titlebar{ margin-bottom:6px; }
+@media (max-width:1150px){
+  .topup-lines-grid{ grid-template-columns:1fr; }
+  .topup-lines-grid .topup-line:nth-child(4n+1),
+  .topup-lines-grid .topup-line:nth-child(4n+2){ background:transparent; }
+  .topup-lines-grid .topup-line:nth-child(odd){ background:rgba(16,19,25,.035); }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width:850px){
+  .global-clean-grid{ grid-template-columns:1fr; }
+}
+@media (max-width:600px){
+  body{ padding:16px 12px 48px; }
+  .brand-mark{ width:50px; height:50px; font-size:26px; border-radius:15px; }
+    .global-line{ grid-template-columns:1fr; gap:6px; }
+  .global-links{ justify-content:flex-start; }
+  .custom-row{ flex-direction:column; }
+    .plan-orders{ min-width:0; width:100%; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+/* ===== v4 density layer ===== */
+
+/* Gigaboost generic chooser strip */
+.chooser-strip{
+  grid-column:1 / -1;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:8px 12px;
+}
+.chooser-label{ font-size:13px; font-weight:700; }
+.chooser-actions{ display:inline-flex; gap:6px; }
+.chooser-actions .oa-open,
+.chooser-actions .oa-copy{ height:26px; padding:3px 12px; font-size:12px; }
+
+/* Tabs */
+.tabs{
+  flex:0 0 auto;
+  display:flex; align-items:center; gap:6px;
+  padding:7px 14px 0;
+  background:var(--bg);
+  border-bottom:1px solid var(--line-strong);
+}
+.tab-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:7px 16px 8px;
+  border:1px solid transparent; border-bottom:0;
+  border-radius:10px 10px 0 0;
+  background:transparent; color:var(--muted);
+  font-family:'Assistant'; font-size:13px; font-weight:700; cursor:pointer;
+  margin-bottom:-1px;
+  transition:color .12s, background .12s;
+}
+.tab-btn:hover{ color:var(--text); background:rgba(16,19,25,.04); }
+.tab-btn.is-active{
+  background:var(--surface); color:var(--text);
+  border-color:var(--line-strong);
+  border-bottom:1px solid var(--surface);
+}
+.tab-btn kbd{
+  font-family:inherit; font-size:10px; font-weight:800;
+  background:rgba(16,19,25,.08); color:var(--muted);
+  border-radius:5px; padding:1px 5px; line-height:1.4;
+}
+.tab-btn.is-active kbd{ background:var(--primary); color:#fff; }
+
+/* בסיסי rows: compact the pill controls that made rows chonky */
+.global-line-text{ font-size:12.5px; gap:5px; }
+.global-line .link-group,
+.global-line .number-order-group{ padding:1px 3px 1px 6px; gap:3px; }
+.global-line .link-label{ font-size:10.5px; }
+.global-line .lk-open,
+.global-line .lk-copy,
+.global-line .lk-set{ height:23px; min-width:0; padding:2px 8px; font-size:11.5px; line-height:1; }
+.global-line .number-order-group input{ width:38px; height:23px; padding:2px 4px; font-size:11.5px; }
+.price-badge{ font-size:10.5px; padding:2px 7px; }
+.global-line .info-tip{ width:18px; height:18px; font-size:10.5px; }
+.global-lines{ gap:1px; }
+
+/* The generic input:focus rule flips backgrounds to white — inside the dark
+   topbar that made typed text (near-white) invisible. Keep them dark. */
+.tb-search input:focus{
+  background:var(--ink-2); color:#e8ecf4;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(47,107,255,.28);
+}
+.tb-options .opt-qty input:focus{
+  background:var(--ink); color:#e8ecf4;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(47,107,255,.28);
+}
+
+/* Batch ICCID mode */
+.topup-batch-toggle{
+  flex:0 0 auto; padding:9px 12px; border-radius:11px; cursor:pointer;
+  background:#fff; border:1px solid var(--line-strong); color:var(--text);
+  font-size:12px; font-weight:700; font-family:inherit; white-space:nowrap;
+}
+.topup-batch-toggle.is-on{ background:var(--primary); color:#fff; border-color:var(--primary); }
+.topup-batch-area{
+  width:100%; box-sizing:border-box; margin-bottom:12px;
+  direction:ltr; text-align:left; font-variant-numeric:tabular-nums;
+  background:#fff; border:1px solid var(--line-strong); border-radius:11px;
+  padding:9px 12px; font-size:13px; font-family:inherit; resize:vertical; min-height:64px;
+}
+.topup-batch-area:focus{ outline:none; border-color:var(--primary); }
+
+/* Quote template editor modal */
+.quote-modal{
+  position:fixed; inset:0; z-index:900; display:none;
+  align-items:center; justify-content:center;
+  background:rgba(16,19,25,.55);
+}
+.quote-modal.open{ display:flex; }
+.quote-modal-card{
+  width:520px; max-width:92vw; background:#fff; border-radius:14px;
+  box-shadow:0 24px 60px rgba(16,19,25,.35); overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.quote-modal-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; background:var(--ink); color:#fff;
+  font-family:'Suez One',serif; font-size:15px;
+}
+.quote-modal-legend{
+  padding:9px 14px; font-size:12px; color:var(--muted);
+  border-bottom:1px solid var(--line);
+}
+.quote-modal-legend code{
+  background:var(--surface-2); border:1px solid var(--line);
+  border-radius:6px; padding:1px 6px; font-size:11.5px; direction:ltr; display:inline-block;
+}
+#quoteTemplateArea{
+  border:0; outline:none; resize:vertical; min-height:170px;
+  padding:12px 14px; font-family:inherit; font-size:13.5px; line-height:1.6;
+}
+.quote-modal-actions{
+  display:flex; gap:8px; justify-content:flex-end;
+  padding:10px 14px; border-top:1px solid var(--line); background:var(--surface-2);
+}
+.quote-modal-actions button{
+  padding:7px 16px; border-radius:9px; cursor:pointer; font-family:inherit;
+  font-size:13px; font-weight:700; border:1px solid var(--line-strong); background:#fff; color:var(--text);
+}
+.quote-modal-actions .quote-save{ background:var(--accent); color:#fff; border-color:transparent; }
+
+/* Price-change banner */
+.price-changes-banner{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:#fff7e0; border:1px solid #f0dfa8; color:#7a5c10;
+  border-radius:10px; padding:7px 11px; margin-bottom:10px;
+  font-size:12.5px; font-weight:700;
+}
+.price-changes-banner button{
+  background:transparent; border:0; color:#7a5c10; cursor:pointer;
+  font-size:13px; padding:2px 6px; border-radius:6px;
+}
+.price-changes-banner button:hover{ background:rgba(122,92,16,.12); }
+
+/* Topbar פישוט button: explicit colors for both states.
+   (Base .opt-btn.is-on set a light mint background that combined with the
+   topbar's white text → unreadable white-on-light.) */
+.tb-options .opt-btn.is-on{ background:var(--primary); color:#fff; border-color:var(--primary); }
+.tb-options .opt-btn.is-on:hover{ background:var(--primary-700); color:#fff; border-color:var(--primary-700); transform:none; }
+.tb-options .opt-btn.is-off{ background:var(--ink-2); color:#c6cdda; border-color:var(--ink-line); }
+.tb-options .opt-btn.is-off:hover{ background:#232a38; color:#fff; border-color:var(--ink-line); transform:none; }
+
+/* Reference pricing editor */
+.ref-editor{
+  display:flex; flex-direction:column; gap:6px;
+  background:var(--surface-2); border:1px dashed var(--line-strong);
+  border-radius:9px; padding:8px 9px; margin-bottom:7px;
+}
+.ref-edit-row{ display:flex; align-items:center; gap:8px; }
+.ref-edit-row label{
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:12px; font-weight:800; color:var(--muted);
+}
+.ref-edit-row input{
+  width:74px; padding:5px 7px; border-radius:8px;
+  border:1px solid var(--line-strong); background:#fff;
+  font-size:12.5px; font-family:inherit; direction:ltr; text-align:left;
+  font-variant-numeric:tabular-nums;
+}
+.ref-edit-row input:focus{ outline:none; border-color:var(--primary); }
+.ref-edit-del{
+  margin-inline-start:auto; padding:3px 8px; border-radius:999px;
+  background:var(--bad-bg); color:var(--bad); border:1px solid var(--bad-bd);
+  cursor:pointer; font-size:11px;
+}
+.ref-edit-actions{ display:flex; gap:6px; padding-top:2px; }
+.ref-edit-actions button{
+  font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px;
+  border:1px solid var(--line-strong); background:#fff; color:var(--text); cursor:pointer;
+}
+.ref-edit-actions .ref-edit-done{ background:var(--accent); color:#fff; border-color:transparent; margin-inline-start:auto; }
+
+/* Topbar chips: compact pills */
+.tb-chips .chip{
+  padding-block:3px; padding-inline-start:9px; padding-inline-end:4px;
+  font-size:11.5px; gap:6px;
+}
+.tb-chips .chip span{ width:15px; height:15px; font-size:10px; }
+.tb-chips .clear-countries-btn{ flex:0 0 auto; }
+
+/* Reference strip: the four sparse cards become one compact 4-up band */
+.ref-strip{
+  grid-column:1 / -1;
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  gap:8px;
+}
+.ref-strip .block{ padding:9px 11px; }
+.ref-strip .block h3{ font-size:12.5px; margin-bottom:4px; }
+.ref-strip pre{ font-size:11.5px; line-height:1.45; padding:7px 9px; margin-top:4px; }
+.ref-strip .block-tools{ margin-bottom:4px; padding-bottom:4px; }
+
+/* Dense table-style price rows: zebra instead of per-row borders */
+.global-line{
+  border:0 !important;
+  border-radius:7px;
+  padding:2px 8px;
+  min-height:26px;
+}
+.global-lines .global-line:nth-child(even){ background:rgba(16,19,25,.033); }
+.global-line:hover{ background:rgba(47,107,255,.07) !important; }
+.global-line.is-cheaper{ background:rgba(14,163,113,.09); }
+.global-line.is-cheaper:nth-child(even){ background:rgba(14,163,113,.12); }
+
+/* Cards: tighter chrome, Suez One section identity */
+.block{ padding:9px 11px; border-radius:12px; }
+.block h3, .global-clean-head h3{ font-family:'Suez One',serif; font-weight:400; letter-spacing:.01em; }
+.global-clean-card{ padding:10px 12px; }
+.global-clean-head{ padding-bottom:7px; margin-bottom:8px; }
+.results-grid{ gap:8px; }
+
+/* Gigaboost ledger + topup ledger sizing lives in the component section above. */
+.order-gb{ min-width:40px; font-size:12px; }
+
+/* Cart drawer internals inherit the old rail styles */
+.cart-drawer .order-builder-card{ padding:0; background:transparent; border:0; box-shadow:none; }
+
+/* Keyboard focus visibility on dark topbar */
+.topbar :focus-visible{ outline:2px solid var(--primary); outline-offset:1px; }
+
+@media (prefers-reduced-motion: reduce){
+  .cart-drawer{ transition:none; }
+  .cart-fab{ transition:none; }
+}
+
+/* Narrow screens: options collapse under the bar */
+@media (max-width:1100px){
+  .topbar{ flex-wrap:wrap; height:auto; padding:8px 12px; row-gap:8px; }
+  .tb-search{ flex:1 1 200px; }
+  .tb-chips{ order:4; flex-basis:100%; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="loading">
+  <div class="loading-inner">
+    <span class="spinner"></span>
+    <span>טוען נתונים…</span>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ░░ TOP BAR · brand / search / chips / options ░░ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="sim-chip" aria-hidden="true"></span>
+      <span class="brand-name">מחשבון גיגה</span>
+    </div>
+
+    <div class="tb-search">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="search" placeholder="חפש מדינה / ISO" autocomplete="off">
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+    </div>
+
+    <div class="tb-chips">
+      <div class="chips" id="selected"></div>
+      <button id="clearCountriesBtn" class="clear-countries-btn" onclick="clearAllCountries()" title="נקה את כל המדינות שנבחרו">✕ נקה</button>
+    </div>
+
+    <div class="tb-options">
+      <label class="opt-switch" title="הוסף empty_cart=true לקישור — מרוקן את העגלה לפני ההוספה">
+        <input type="checkbox" id="emptyCartToggle" checked onchange="setEmptyCart(this.checked)">
+        <span class="sw" aria-hidden="true"></span>
+        <span>רוקן עגלה</span>
+      </label>
+      <label class="opt-qty" title="כמות עבור הקישור 'יחיד'">
+        <span>כמות</span>
+        <input type="number" id="cartQty" min="1" step="1" value="1"
+               onchange="setCartQuantity(this.value)" oninput="setCartQuantity(this.value)">
+      </label>
+      <label class="opt-qty" title="סכום מותאם אישית בדולר — Enter לחישוב">
+        <span>$</span>
+        <input id="customAmount" type="number" step="0.01" placeholder="סכום"
+               onkeydown="if(event.key==='Enter'){renderAll()}">
+      </label>
+      <label class="opt-qty" title="שער המרה דולר→שקל — משפיע על כל מחירי ה-eSIM">
+        <span>₪/$</span>
+        <input type="number" id="usdRate" min="0.1" step="0.01" value="3.3"
+               onchange="setUsdRate(this.value)">
+      </label>
+      <button id="masterSimplifyBtn" class="opt-btn is-on" onclick="toggleAllSimplify()">פישוט</button>
+      <button class="json-btn" onclick="downloadAllJSON()" title="הורד הכל כ‑JSON">📥 JSON</button>
+    </div>
+  </header>
+
+  <div id="exportStatus" class="status topbar-status"></div>
+
+  <!-- ░░ TABS ░░ -->
+  <nav class="tabs" id="tabsNav">
+    <button class="tab-btn" data-tab="basic" onclick="setActiveTab('basic')">תוכניות בסיסי <kbd>1</kbd></button>
+    <button class="tab-btn" data-tab="gigaboost" onclick="setActiveTab('gigaboost')">גיגהבוסט <kbd>2</kbd></button>
+    <button class="tab-btn" data-tab="copy" onclick="setActiveTab('copy')">העתקות <kbd>3</kbd></button>
+    <button class="tab-btn" data-tab="topup" onclick="setActiveTab('topup')">טופאפ <kbd>4</kbd></button>
+  </nav>
+
+  <!-- ░░ CONTENT · full width ░░ -->
+  <main class="content">
+    <div id="results"></div>
+  </main>
+
+</div>
+
+<!-- ░░ CART · floating chip + drawer ░░ -->
+<button id="cartFab" class="cart-fab" onclick="toggleCartDrawer()" title="ההזמנה שלך">
+  <span class="sim-chip small" aria-hidden="true"></span>
+  <span id="cartFabCount" class="cart-fab-count">0</span>
+</button>
+<aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
+  <div class="cart-drawer-head">
+    <span>🛒 ההזמנה שלך</span>
+    <button class="cart-drawer-close" onclick="toggleCartDrawer(false)" title="סגור">✕</button>
+  </div>
+  <div id="cart"></div>
+</aside>
+
+<!-- ░░ Quote template editor ░░ -->
+<div id="quoteModal" class="quote-modal">
+  <div class="quote-modal-card">
+    <div class="quote-modal-head">
+      <span>✎ תבנית הצעת מחיר</span>
+      <button class="cart-drawer-close" onclick="closeQuoteEditor()" title="סגור">✕</button>
+    </div>
+    <div class="quote-modal-legend">
+      משתני תבנית: <code>{country}</code> <code>{esim_plans}</code> <code>{psim_plans}</code> <code>{date}</code>
+    </div>
+    <textarea id="quoteTemplateArea" rows="9" spellcheck="false"></textarea>
+    <div class="quote-modal-actions">
+      <button onclick="resetQuoteTemplate()">איפוס</button>
+      <button class="quote-save" onclick="saveQuoteTemplate()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.__renderEmptyCart = function(){
+  return `<div class="cart-empty"><span class="ce-emoji">🛒</span>העגלה ריקה.<br>הוסף חבילות מהמרכז כדי לבנות הזמנה משולבת.</div>`;
+};
+window.toggleCartDrawer = function(force){
+  const d = document.getElementById("cartDrawer");
+  const open = typeof force === "boolean" ? force : !d.classList.contains("open");
+  d.classList.toggle("open", open);
+  d.setAttribute("aria-hidden", String(!open));
+};
+window.__updateCartFab = function(){
+  const el = document.getElementById("cartFabCount");
+  const fab = document.getElementById("cartFab");
+  if (!el || !fab) return;
+  const n = (typeof orderBuilderItems !== "undefined" && orderBuilderItems) ? orderBuilderItems.length : 0;
+  el.textContent = String(n);
+  fab.classList.toggle("has-items", n > 0);
+};
+</script>
+
+<script>
+let USD_TO_ILS = 3.3;
+try {
+  const savedRate = parseFloat(localStorage.getItem("simtlv_usd_rate"));
+  if (Number.isFinite(savedRate) && savedRate > 0) USD_TO_ILS = savedRate;
+} catch (e) {}
+{
+  const rateEl = document.getElementById("usdRate");
+  if (rateEl) rateEl.value = USD_TO_ILS;
+}
+
+function setUsdRate(value) {
+  const rate = parseFloat(value);
+  if (!Number.isFinite(rate) || rate <= 0) return;
+  USD_TO_ILS = rate;
+  try { localStorage.setItem("simtlv_usd_rate", String(rate)); } catch (e) {}
+  renderAll();
+}
+
+const WALLET = [
+  { usd: 13.33, ils: 44 },
+  { usd: 30.24, ils: 88 },
+  { usd: 63, ils: 175 }
+];
+
+const PHYSICAL = [
+  { usd: 15, ils: 74 },
+  { usd: 25, ils: 99 },
+  { usd: 63, ils: 175 }
+];
+
+// ---- Editable reference pricing (persisted) -------------------------------
+// The $/₪ tiers can be adjusted (e.g. a bonus: ₪74 buys $17.5 instead of $15).
+// Overrides live in localStorage and are applied onto WALLET/PHYSICAL in place.
+const DEFAULT_WALLET = WALLET.map(r => ({ ...r }));
+const DEFAULT_PHYSICAL = PHYSICAL.map(r => ({ ...r }));
+const REF_STORE_KEY = "simtlv_ref_overrides_v1";
+const refEdit = { wallet: false, physical: false };
+
+function refArr(kind) { return kind === "wallet" ? WALLET : PHYSICAL; }
+
+function loadRefOverrides() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(REF_STORE_KEY) || "null");
+    if (!raw) return;
+    for (const kind of ["wallet", "physical"]) {
+      if (!Array.isArray(raw[kind])) continue;
+      const arr = refArr(kind);
+      arr.length = 0;
+      raw[kind].forEach(r => {
+        const usd = parseFloat(r.usd), ils = parseFloat(r.ils);
+        if (Number.isFinite(usd) && Number.isFinite(ils)) arr.push({ usd, ils });
+      });
+      if (!arr.length) (kind === "wallet" ? DEFAULT_WALLET : DEFAULT_PHYSICAL).forEach(r => arr.push({ ...r }));
+    }
+  } catch (e) {}
+}
+
+function saveRefOverrides() {
+  try {
+    localStorage.setItem(REF_STORE_KEY, JSON.stringify({ wallet: WALLET, physical: PHYSICAL }));
+  } catch (e) {}
+}
+
+function toggleRefEdit(kind) {
+  refEdit[kind] = !refEdit[kind];
+  renderAll();
+}
+
+function setRefValue(kind, i, field, val) {
+  const arr = refArr(kind);
+  const num = parseFloat(val);
+  if (!arr[i] || !Number.isFinite(num) || num < 0) { renderAll(); return; }
+  arr[i][field] = num;
+  saveRefOverrides();
+  renderAll();
+}
+
+function addRefRow(kind) {
+  refArr(kind).push({ usd: 0, ils: 0 });
+  saveRefOverrides();
+  renderAll();
+}
+
+function removeRefRow(kind, i) {
+  const arr = refArr(kind);
+  if (arr.length <= 1) return; // keep at least one tier
+  arr.splice(i, 1);
+  saveRefOverrides();
+  renderAll();
+}
+
+function resetRefRows(kind) {
+  const arr = refArr(kind);
+  const defs = kind === "wallet" ? DEFAULT_WALLET : DEFAULT_PHYSICAL;
+  arr.length = 0;
+  defs.forEach(r => arr.push({ ...r }));
+  saveRefOverrides();
+  renderAll();
+}
+
+function renderRefEditor(kind) {
+  const arr = refArr(kind);
+  const rows = arr.map((r, i) => `
+    <div class="ref-edit-row">
+      <label>$<input type="number" step="0.01" min="0" value="${r.usd}"
+             onchange="setRefValue('${kind}', ${i}, 'usd', this.value)"></label>
+      <label>₪<input type="number" step="1" min="0" value="${r.ils}"
+             onchange="setRefValue('${kind}', ${i}, 'ils', this.value)"></label>
+      <button class="ref-edit-del" onclick="removeRefRow('${kind}', ${i})" title="מחק שורה">✕</button>
+    </div>
+  `).join("");
+  return `
+    <div class="ref-editor">
+      ${rows}
+      <div class="ref-edit-actions">
+        <button onclick="addRefRow('${kind}')">+ שורה</button>
+        <button onclick="resetRefRows('${kind}')" title="חזרה לערכי ברירת המחדל">איפוס</button>
+        <button class="ref-edit-done" onclick="toggleRefEdit('${kind}')">סיום</button>
+      </div>
+    </div>
+  `;
+}
+
+loadRefOverrides();
+
+let data = [];
+let selected = [];
+let globalCache = {};
+let globalLoading = {};
+
+// Per-container "simplify" state. Every results card has its own key, so
+// toggles are independent. Default is ON (true); a value of false means OFF.
+let simplifyState = {};
+function isSimplified(key) {
+  return simplifyState[key] !== false;
+}
+
+// Cart / checkout settings (apply to the "מחירים חדשים" purchase links).
+let cartSettings = {
+  emptyCart: true,   // add empty_cart=true (clear the cart before adding)
+  quantity: 1        // quantity for the single ("יחיד") item
+};
+
+// Generated order builder. Rows in the "מחירים חדשים" card can set their own
+// quantity, so one generated order can contain mixed physical SIM and eSIM plans.
+let orderBuilderItems = [];
+let orderPackageRegistry = {};
+const ORDER_PAYLOAD_PARAM = "order_payload";
+
+function setEmptyCart(on) {
+  cartSettings.emptyCart = !!on;
+  renderAll();
+}
+
+// ---- Tabs ------------------------------------------------------------------
+const TAB_IDS = ["basic", "gigaboost", "copy", "topup"];
+let activeTab = "basic";
+
+function setActiveTab(tab) {
+  if (!TAB_IDS.includes(tab)) return;
+  activeTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b =>
+    b.classList.toggle("is-active", b.dataset.tab === tab)
+  );
+  renderAll();
+}
+
+// Digits 1–4 switch tabs — ignored while typing in any field.
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const idx = ["1", "2", "3", "4"].indexOf(e.key);
+  if (idx !== -1) { e.preventDefault(); setActiveTab(TAB_IDS[idx]); }
+});
+
+function setCartQuantity(value) {
+  const n = parseInt(value, 10);
+  cartSettings.quantity = (Number.isFinite(n) && n > 0) ? n : 1;
+  renderAll();
+}
+
+// ---- Session persistence -------------------------------------------------
+// Everything you'd expect to survive a close/reopen: selected countries,
+// cart lines, toggles, quantities, simplify states, batch mode.
+const SESSION_KEY = "simtlv_session_v1";
+let sessionRestoring = false;
+
+function persistSession() {
+  if (sessionRestoring) return;
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      selectedIsos: selected.map(c => c.iso),
+      activeTab,
+      cartSettings,
+      simplifyState,
+      orderBuilderItems,
+      batchMode: !!(topupState && topupState.batchMode),
+      batchRaw: (topupState && topupState.batchRaw) || ""
+    }));
+  } catch (e) {}
+}
+
+function restoreSession() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch (e) {}
+  if (!saved) return;
+  sessionRestoring = true;
+  try {
+    if (TAB_IDS.includes(saved.activeTab)) activeTab = saved.activeTab;
+    if (saved.cartSettings && typeof saved.cartSettings === "object") {
+      cartSettings = { ...cartSettings, ...saved.cartSettings };
+      const cb = document.getElementById("emptyCartToggle");
+      if (cb) cb.checked = !!cartSettings.emptyCart;
+      const q = document.getElementById("cartQty");
+      if (q) q.value = cartSettings.quantity;
+    }
+    if (saved.simplifyState && typeof saved.simplifyState === "object") {
+      simplifyState = saved.simplifyState;
+    }
+    if (Array.isArray(saved.orderBuilderItems)) {
+      orderBuilderItems = saved.orderBuilderItems;
+    }
+    ensureAutoTopupState();
+    topupState.batchMode = !!saved.batchMode;
+    topupState.batchRaw = String(saved.batchRaw || "");
+    if (topupState.batchRaw) setTopupBatchIccids(topupState.batchRaw);
+    if (Array.isArray(saved.selectedIsos) && saved.selectedIsos.length) {
+      selected = saved.selectedIsos
+        .map(iso => data.find(c => c.iso === iso))
+        .filter(Boolean);
+      renderSelected();
+      selected.forEach(c => ensureGlobalCountry(c));
+    }
+  } finally {
+    sessionRestoring = false;
+  }
+}
+
+// ----- master "simplify" controls (all cards at once) -----
+
+function anySimplified() {
+  return allSimplifyKeys().some(isSimplified);
+}
+
+function setAllSimplify(on) {
+  allSimplifyKeys().forEach(k => { simplifyState[k] = on; });
+  renderAll();
+}
+
+function toggleAllSimplify() {
+  // If anything is still simplified, turn everything OFF; otherwise turn all ON.
+  setAllSimplify(!anySimplified());
+}
+
+function updateMasterSimplifyLabel() {
+  const btn = document.getElementById('masterSimplifyBtn');
+  if (!btn) return;
+  const on = anySimplified();
+  btn.textContent = on ? 'פישוט: פעיל' : 'פישוט: כבוי';
+  btn.title = on ? 'כבה פישוט בכל הכרטיסים' : 'הפעל פישוט בכל הכרטיסים';
+  btn.classList.toggle('is-on', on);
+  btn.classList.toggle('is-off', !on);
+}
+
+// Copy every ISO code in a zone (comma-separated).
+// ---- Regions ---------------------------------------------------------------
+// Every ISO gets a region so zone country-lists read nicely for clients.
+const REGION_ORDER = ["אירופה", "צפון אמריקה", "דרום אמריקה", "מרכז אמריקה והקריביים", "אסיה", "המזרח התיכון", "אפריקה", "אוקיאניה", "אחר"];
+const REGION_ISOS = {
+  "אירופה": "AL AD AT AX BA BE BG BY CH CY CZ DE DK EE ES FI FO FR GB GG GI GL GR HR HU IE IM IS IT JE LI LT LU LV MC MD ME MK MT NL NO PL PT RO RS RU SE SI SK SM UA VA XK",
+  "צפון אמריקה": "US CA MX BM PM",
+  "דרום אמריקה": "AR BO BR CL CO EC FK GF GY PE PY SR UY VE",
+  "מרכז אמריקה והקריביים": "AG AI AW BB BL BQ BS BZ CR CU CW DM DO GD GP GT HN HT JM KN KY LC MF MQ MS NI PA PR SV SX TC TT VC VG VI",
+  "אסיה": "AF AM AZ BD BN BT CN GE HK ID IN JP KG KH KP KR KZ LA LK MM MN MO MV MY NP PH PK SG TH TJ TL TM TW UZ VN",
+  "המזרח התיכון": "AE BH EG IL IQ IR JO KW LB OM PS QA SA SY TR YE",
+  "אפריקה": "AO BF BI BJ BW CD CF CG CI CM CV DJ DZ EH ER ET GA GH GM GN GQ GW KE KM LR LS LY MA MG ML MR MU MW MZ NA NE NG RE RW SC SD SL SN SO SS ST SZ TD TG TN TZ UG YT ZA ZM ZW",
+  "אוקיאניה": "AS AU CK FJ FM GU KI MH MP NC NF NR NU NZ PF PG PW SB TO TV VU WF WS",
+};
+const ISO_REGION = {};
+for (const [region, isos] of Object.entries(REGION_ISOS)) {
+  for (const iso of isos.split(/\s+/)) ISO_REGION[iso] = region;
+}
+function regionOfIso(iso) { return ISO_REGION[iso] || "אחר"; }
+
+// Group countries by region → client-ready text block.
+function formatCountriesByRegion(countries) {
+  const byRegion = {};
+  for (const c of countries) (byRegion[regionOfIso(c.iso)] ||= []).push(c.name.he);
+  const lines = [];
+  for (const region of REGION_ORDER) {
+    const names = byRegion[region];
+    if (!names || !names.length) continue;
+    lines.push(`${region}: ${names.sort((a, b) => a.localeCompare(b, "he")).join(", ")}`);
+  }
+  return lines.join("\n");
+}
+
+function countriesForTypeZone(simType, zone) {
+  const field = simType === "esim" ? "esimZone" : simType === "physical" ? "physicalZone" : "zone";
+  return data.filter(c => Number(c[field] ?? c.zone) === Number(zone));
+}
+
+// Client-facing: full country list of a zone, grouped by region, with count.
+function copyZoneCountriesForType(simType, zone) {
+  const countries = countriesForTypeZone(simType, zone);
+  if (!countries.length) { alert("לא נמצאו מדינות באזור הזה"); return; }
+  const text = `✈️ ${countries.length} יעדים בחבילה (אזור ${zone}):\n\n${formatCountriesByRegion(countries)}`;
+  copyText(text);
+}
+
+function copyZoneCountries(zone) {
+  copyZoneCountriesForType("general", zone);
+}
+
+/////////////////////////
+// FETCH
+/////////////////////////
+
+(async () => {
+  const BASE = "https://app-link.simtlv.co.il";
+  const loadingEl = document.getElementById("loading");
+  if (new URLSearchParams(window.location.search).has(ORDER_PAYLOAD_PARAM)) {
+    renderStandaloneOrderPortal();
+    return;
+  }
+  try {
+
+  function round2(n) {
+    return Number(Number(n).toFixed(2));
+  }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url);
+    return res.json();
+  }
+
+  // get-countries: credit price + general zone. The pSIM and eSIM catalogs
+  // have their OWN country lists with their own zones, which can differ per
+  // country — so gigaboost plans must use the per-type zone, not the general one.
+  const [countriesRes, physListRes, esimListRes] = await Promise.all([
+    fetchJSON(`${BASE}/get-countries`),
+    fetchJSON(`${BASE}/get-physical-countries`).catch(() => null),
+    fetchJSON(`${BASE}/get-payasugo-countries`).catch(() => null),
+  ]);
+  const esimCountries = countriesRes.data;
+
+  function zoneMapFrom(res) {
+    const list = Array.isArray(res) ? res : (res && Array.isArray(res.data) ? res.data : []);
+    const map = {};
+    for (const c of list) {
+      const iso = c.iso_code || c.iso;
+      const z = parseInt(c.zone, 10);
+      if (iso && Number.isFinite(z)) map[iso] = z;
+    }
+    return map;
+  }
+  const physicalZoneByIso = zoneMapFrom(physListRes);
+  const esimZoneByIso = zoneMapFrom(esimListRes);
+
+  const zones = Array.from({ length: 20 }, (_, i) => i + 1);
+
+  const esimPackages = (await Promise.all(
+    zones.map(z => fetchJSON(`${BASE}/get-packages?zone=${z}`).catch(()=>[]))
+  )).flat();
+
+  const physicalPackages = (await Promise.all(
+    zones.map(z => fetchJSON(`${BASE}/get-physical-packages?zone=${z}`).catch(()=>[]))
+  )).flat();
+
+  const esimByZone = {};
+  const physicalByZone = {};
+
+  for (const p of esimPackages) {
+    (esimByZone[p.zone] ||= []).push({
+      dataGB: p.data,
+      priceUSD: round2(p.price),
+      appId: p.id // token segment of the direct app.simtlv payment link
+    });
+  }
+
+  for (const p of physicalPackages) {
+    (physicalByZone[p.zone] ||= []).push({
+      dataGB: parseFloat(p.data_amount),
+      priceILS: round2(p.price),
+      appId: p.id // numeric segment of the direct app.simtlv payment link
+    });
+  }
+
+  data = esimCountries.map(c => {
+    const generalZone = c.zone;
+    const esimZone = esimZoneByIso[c.iso_code] ?? generalZone;
+    const physicalZone = physicalZoneByIso[c.iso_code] ?? generalZone;
+    return {
+      iso: c.iso_code,
+      name: {
+        en: c.country_name,
+        he: c.hebrew_name || c.country_name
+      },
+      zone: generalZone,
+      esimZone,
+      physicalZone,
+      credit_price_per_gb: round2(c.price),
+      plans: {
+        esim: esimByZone[esimZone] || [],
+        physical: physicalByZone[physicalZone] || []
+      }
+    };
+  });
+
+  loadPersistedGlobalCache();
+  restoreSession();
+  if (loadingEl) loadingEl.style.display = "none";
+  renderAll();
+  setExportStatus(`מטמון API חדש נטען מהדפדפן: ${Object.keys(globalCache).length}/${data.length}. טעינה מלאה משתמשת בנציג אחד לכל אזור כדי לא לבזבז 320 בקשות.`);
+  setTimeout(() => autostartTopupCatalogPreload(false), 0);
+  } catch (err) {
+    console.error("Initial data load failed", err);
+    if (loadingEl) {
+      loadingEl.innerHTML = `טעינת הנתונים נכשלה.<br><small>${err.message}</small>`;
+      loadingEl.style.background = "#fff3f3";
+      loadingEl.style.color = "#8a0000";
+    }
+  }
+})();
+
+
+/////////////////////////
+// JSON EXPORT + NEW GLOBAL API
+/////////////////////////
+
+const GLOBAL_API_DATE_RANGE = "05/29/2026 - 05/29/2026";
+const GLOBAL_SIM_TYPES = ["physical_sim", "esim"];
+const GLOBAL_PRELOAD_CONCURRENCY = Infinity;
+
+const GLOBAL_CACHE_STORAGE_KEY = "simtlv_global_cache_v7_zone_validated";
+const GLOBAL_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // auto-expire scans after 12h
+let globalCachePrev = {}; // expired same-zone entries kept as diff baselines
+let globalPreloadRunning = false;
+let globalPreloadDone = false;
+
+// Compare two cached scans and list per-package price movements.
+// Small dismissible strip listing what moved since the previous scan.
+function renderPriceChangesBanner(result) {
+  const changes = result?.priceChanges;
+  if (!changes || !changes.length || result?.priceChangesDismissed) return "";
+  const label = ch => `${ch.simType === "esim" ? "eSIM" : "פיזי"} ${ch.dataGB}GB ₪${ch.from}→₪${ch.to}`;
+  const shown = changes.slice(0, 6).map(label).join(" · ");
+  const more = changes.length > 6 ? ` (+${changes.length - 6})` : "";
+  return `
+    <div class="price-changes-banner">
+      <span>📈 שינויי מחיר מאז הסריקה הקודמת: ${escapeHtml(shown + more)}</span>
+      <button onclick="dismissPriceChanges('${escapeHtml(result.assignedIso || "")}')" title="הסתר">✕</button>
+    </div>`;
+}
+
+function dismissPriceChanges(iso) {
+  if (globalCache[iso]) {
+    globalCache[iso].priceChangesDismissed = true;
+    persistGlobalCache();
+  }
+  renderAll();
+}
+
+function computePriceChanges(oldEntry, newEntry) {
+  if (!oldEntry || !newEntry) return [];
+  const changes = [];
+  for (const simType of GLOBAL_SIM_TYPES) {
+    const oldPkgs = oldEntry[simType] || [];
+    for (const np of (newEntry[simType] || [])) {
+      const op = oldPkgs.find(p => p.dataGB === np.dataGB && p.validityDays === np.validityDays);
+      const from = op?.base?.totalILS, to = np?.base?.totalILS;
+      if (Number.isFinite(from) && Number.isFinite(to) && from !== to) {
+        changes.push({ simType, dataGB: np.dataGB, validityDays: np.validityDays, from, to });
+      }
+    }
+  }
+  return changes;
+}
+
+function loadPersistedGlobalCache() {
+  try {
+    const saved = localStorage.getItem(GLOBAL_CACHE_STORAGE_KEY);
+    if (!saved) return;
+    const parsed = JSON.parse(saved);
+    if (!parsed || typeof parsed !== "object") return;
+
+    // Automatic freshness: an entry survives only if (a) its recorded zone
+    // still matches the country's current zone (zones change — e.g. Singapore
+    // moved 2 → 3) AND (b) it is younger than the TTL, so in-zone price
+    // changes also self-heal without anyone noticing stale data first.
+    const now = Date.now();
+    const validated = {};
+    let dropped = 0;
+    for (const [iso, entry] of Object.entries(parsed)) {
+      const country = data.find(c => c.iso === iso);
+      const entryZone = Number(entry?.assignedZone ?? entry?.zone ?? entry?.global_zone);
+      const fresh = Number.isFinite(entry?.cachedAt) && (now - entry.cachedAt) < GLOBAL_CACHE_TTL_MS;
+      if (country && fresh && Number.isFinite(entryZone) && Number(country.zone) === entryZone) {
+        validated[iso] = entry;
+      } else {
+        dropped++;
+        // Same-zone expirations become diff baselines: when the fresh scan
+        // lands we can report what changed since the last one.
+        if (country && Number.isFinite(entryZone) && Number(country.zone) === entryZone) {
+          globalCachePrev[iso] = entry;
+        }
+      }
+    }
+    globalCache = validated;
+    if (dropped) console.info(`globalCache: dropped ${dropped} stale/expired entries`);
+  } catch (e) {
+    console.warn("Could not load saved global API cache", e);
+  }
+}
+
+function persistGlobalCache() {
+  try {
+    localStorage.setItem(GLOBAL_CACHE_STORAGE_KEY, JSON.stringify(globalCache));
+  } catch (e) {
+    console.warn("Could not save global API cache", e);
+  }
+}
+
+async function startGlobalPreloadAll(forceRefresh = false) {
+  if (!data.length || globalPreloadRunning) return;
+
+  globalPreloadRunning = true;
+  globalPreloadDone = false;
+
+  const zoneRepresentatives = getZoneRepresentatives(forceRefresh);
+
+  if (!zoneRepresentatives.length) {
+    globalPreloadRunning = false;
+    globalPreloadDone = true;
+    setExportStatus(`מחירי API חדש כבר טעונים לפי אזורים: ${getLoadedZoneCount()}/${getTotalZoneCount()} אזורים`);
+    renderAll();
+    return;
+  }
+
+  let completed = 0;
+  const totalRequests = zoneRepresentatives.length * GLOBAL_SIM_TYPES.length;
+  setExportStatus(`טוען לפי אזורים בלבד: 0/${zoneRepresentatives.length} אזורים | ${totalRequests} בקשות API`);
+
+  await Promise.all(zoneRepresentatives.map(async rep => {
+    try {
+      const global = await fetchGlobalBothTypesForCountry(rep.country);
+      assignGlobalResultToZone(rep.zone, global);
+    } catch (err) {
+      assignGlobalErrorToZone(rep.zone, err);
+    } finally {
+      completed++;
+      persistGlobalCache();
+      setExportStatus(`טוען לפי אזורים בלבד: ${completed}/${zoneRepresentatives.length} אזורים הסתיימו`);
+      renderAll();
+    }
+  }));
+
+  persistGlobalCache();
+  globalPreloadRunning = false;
+  globalPreloadDone = true;
+  setExportStatus(`טעינת API חדש הסתיימה: ${getLoadedZoneCount()}/${getTotalZoneCount()} אזורים, ${Object.keys(globalCache).length}/${data.length} מדינות`);
+  renderAll();
+}
+
+function getTotalZoneCount() {
+  return new Set(data.map(c => c.zone)).size;
+}
+
+function getLoadedZoneCount() {
+  const zones = new Set();
+  data.forEach(c => {
+    if (globalCache[c.iso]) zones.add(c.zone);
+  });
+  return zones.size;
+}
+
+function getZoneRepresentatives(forceRefresh = false) {
+  const byZone = new Map();
+
+  data.forEach(country => {
+    if (!byZone.has(country.zone)) byZone.set(country.zone, country);
+  });
+
+  return [...byZone.entries()]
+    .filter(([zone]) => forceRefresh || !data.some(c => c.zone === zone && globalCache[c.iso]))
+    .map(([zone, country]) => ({ zone, country }));
+}
+
+function cloneGlobalResultForCountry(global, country) {
+  const clone = JSON.parse(JSON.stringify(global));
+
+  GLOBAL_SIM_TYPES.forEach(simType => {
+    clone[simType] = (clone[simType] || []).map(pkg => rewritePackageLinksForCountry(pkg, country));
+  });
+
+  clone.source = "zone_representative";
+  clone.assignedIso = country.iso;
+  clone.assignedZone = country.zone;
+  clone.cachedAt = Date.now();
+  const prev = globalCache[country.iso] || globalCachePrev[country.iso];
+  const changes = computePriceChanges(prev, clone);
+  if (changes.length) clone.priceChanges = changes;
+  delete globalCachePrev[country.iso];
+
+  return clone;
+}
+
+function rewritePackageLinksForCountry(pkg, country) {
+  const cloned = JSON.parse(JSON.stringify(pkg));
+
+  function rewrite(url, quantity = 1) {
+    if (!url) return url;
+    try {
+      const u = new URL(url);
+      u.searchParams.set("fly_countries", country.iso);
+      u.searchParams.set("product_zone", `PG_${country.zone}`);
+      u.searchParams.set("empty_cart", "true");
+      u.searchParams.set("ref", "R41IMUNU");
+      u.searchParams.set("quantity", String(quantity || 1));
+      return u.toString();
+    } catch (e) {
+      let out = String(url)
+        .replace(/fly_countries=[^&]*/g, `fly_countries=${encodeURIComponent(country.iso)}`)
+        .replace(/product_zone=PG_\d+/g, `product_zone=PG_${country.zone}`);
+
+      const joiner = out.includes("?") ? "&" : "?";
+      return `${out}${joiner}empty_cart=true&ref=R41IMUNU&quantity=${encodeURIComponent(quantity || 1)}`;
+    }
+  }
+
+  if (cloned.base) cloned.base.checkoutUrl = rewrite(cloned.base.checkoutUrl, cloned.base.quantity || 1);
+  if (Array.isArray(cloned.deals)) {
+    cloned.deals = cloned.deals.map(d => ({ ...d, checkoutUrl: rewrite(d.checkoutUrl, d.quantity || 1) }));
+  }
+
+  return cloned;
+}
+
+function assignGlobalResultToZone(zone, global) {
+  data.filter(c => c.zone === zone).forEach(country => {
+    globalCache[country.iso] = cloneGlobalResultForCountry(global, country);
+  });
+}
+
+function assignGlobalErrorToZone(zone, err) {
+  data.filter(c => c.zone === zone).forEach(country => {
+    globalCache[country.iso] = {
+      physical_sim: [],
+      esim: [],
+      zone,
+      cachedAt: Date.now(),
+      errors: [{ simType: "all", message: String(err.message || err) }]
+    };
+  });
+}
+
+
+function round2(n) {
+  return Number(Number(n).toFixed(2));
+}
+
+function setExportStatus(text) {
+  const el = document.getElementById("exportStatus");
+  el.style.display = text ? "block" : "none";
+  el.textContent = text || "";
+}
+
+function downloadJSON(filename, object) {
+  const jsonString = JSON.stringify(object, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function getValidityDays(daysText) {
+  const text = String(daysText || "").replace(/\s+/g, " ").trim();
+
+  if (text.includes("5") && text.includes("שנ")) return 1825;
+  if (text.includes("שנה") || text.includes("לשנה")) return 365;
+
+  const m = text.match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+function getShekelAmount(text) {
+  const clean = String(text || "").replace(/,/g, "").replace(/\s+/g, " ");
+
+  const beforeSymbol = [...clean.matchAll(/(\d+(?:\.\d+)?)\s*₪/g)].map(m => Number(m[1]));
+  if (beforeSymbol.length) return beforeSymbol[beforeSymbol.length - 1];
+
+  const afterSymbol = [...clean.matchAll(/₪\s*(\d+(?:\.\d+)?)/g)].map(m => Number(m[1]));
+  if (afterSymbol.length) return afterSymbol[afterSymbol.length - 1];
+
+  return 0;
+}
+
+function getQuantityFromBundle(label, href) {
+  try {
+    const url = new URL(href);
+    const q = parseInt((url.searchParams.get("quantity") || "").trim(), 10);
+    if (q > 1) return q;
+  } catch (e) {}
+
+  const clean = String(label || "").replace(/\s+/g, " ").trim();
+
+  if (clean.includes("זוג")) return 2;
+
+  const units = clean.match(/(\d+)\s*(יח|יח׳|כרטיס|כרטיסים)/);
+  if (units) return parseInt(units[1], 10);
+
+  return 2;
+}
+
+
+async function fetchGlobalPackagesForCountry(iso, simType) {
+  const params = new URLSearchParams();
+
+  params.set("action", "esim_global_ajax");
+  params.set("task", "search_packages");
+  params.set("on_what_dates", GLOBAL_API_DATE_RANGE);
+  params.append("fly_countries[]", iso);
+  params.set("sim_type", simType);
+
+  const url = "https://simtlv.co.il/wp-admin/admin-ajax.php?" + params.toString();
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`${simType} ${iso}: HTTP ${res.status}`);
+  }
+
+  const json = await res.json();
+
+  return {
+    iso,
+    simType,
+    zone: json?.data?.zone ?? null,
+    packages: parseGlobalProducts(json, simType),
+    rawSuccess: json?.success === true
+  };
+}
+
+async function fetchGlobalBothTypesForCountry(country) {
+  const result = {
+    physical_sim: [],
+    esim: [],
+    errors: []
+  };
+
+  const fetchedResults = await Promise.allSettled(
+    GLOBAL_SIM_TYPES.map(simType => fetchGlobalPackagesForCountry(country.iso, simType))
+  );
+
+  fetchedResults.forEach((outcome, index) => {
+    const simType = GLOBAL_SIM_TYPES[index];
+
+    if (outcome.status === "fulfilled") {
+      const fetched = outcome.value;
+      result[simType] = fetched.packages;
+      if (fetched.zone !== null) result.zone = fetched.zone;
+    } else {
+      result.errors.push({
+        simType,
+        message: String(outcome.reason?.message || outcome.reason)
+      });
+    }
+  });
+
+  return result;
+}
+
+
+async function ensureGlobalCountry(country) {
+  if (!country || !country.iso) return;
+  if (globalCache[country.iso] || globalLoading[country.iso]) return;
+
+  globalLoading[country.iso] = true;
+  renderAll();
+
+  try {
+    const global = await fetchGlobalBothTypesForCountry(country);
+    global.assignedZone = country.zone;
+    global.cachedAt = Date.now();
+    const prev = globalCache[country.iso] || globalCachePrev[country.iso];
+    const changes = computePriceChanges(prev, global);
+    if (changes.length) global.priceChanges = changes;
+    delete globalCachePrev[country.iso];
+    globalCache[country.iso] = global;
+    persistGlobalCache();
+  } catch (err) {
+    globalCache[country.iso] = {
+      physical_sim: [],
+      esim: [],
+      assignedZone: country.zone,
+      cachedAt: Date.now(),
+      errors: [{ simType: 'all', message: String(err.message || err) }]
+    };
+    persistGlobalCache();
+  } finally {
+    globalLoading[country.iso] = false;
+    renderAll();
+  }
+}
+
+function loadGlobalForSelected() {
+  selected.forEach(c => ensureGlobalCountry(c));
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function mapAllAtOnce(items, worker) {
+  return Promise.all(items.map((item, index) => worker(item, index)));
+}
+
+async function mapWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let index = 0;
+
+  async function runWorker() {
+    while (index < items.length) {
+      const current = index++;
+      results[current] = await worker(items[current], current);
+      await sleep(120);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, runWorker)
+  );
+
+  return results;
+}
+
+function makeLegacyExportObject() {
+  return {
+    exported_at: new Date().toISOString(),
+    source: "old_app_link_api",
+    wallet_packages: WALLET,
+    physical_credit_packages: PHYSICAL,
+    countries: data.map(c => ({
+      iso: c.iso,
+      name: c.name,
+      zone: c.zone,
+      credit_price_per_gb: c.credit_price_per_gb,
+      plans: {
+        esim_old_api: c.plans.esim,
+        physical_old_api: c.plans.physical
+      }
+    }))
+  };
+}
+
+
+async function buildGlobalExport(countriesToExport) {
+  const rows = await mapAllAtOnce(countriesToExport, async (country, i) => {
+    setExportStatus(`Global API export: ${i + 1}/${countriesToExport.length} - ${country.iso}`);
+
+    const global = await fetchGlobalBothTypesForCountry(country);
+
+    return {
+      iso: country.iso,
+      name: country.name,
+      old_zone: country.zone,
+      global_zone: global.zone ?? null,
+      credit_price_per_gb: country.credit_price_per_gb,
+      plans: {
+        old_api: {
+          esim: country.plans.esim,
+          physical: country.plans.physical
+        },
+        global_api: {
+          physical_sim: global.physical_sim,
+          esim: global.esim,
+          errors: global.errors
+        }
+      }
+    };
+  });
+
+  setExportStatus("");
+
+  return {
+    exported_at: new Date().toISOString(),
+    global_api_date_range: GLOBAL_API_DATE_RANGE,
+    notes: [
+      "old_api and global_api are intentionally separate because prices, products, product IDs, and deals can differ.",
+      "global_api packages include base price, bundle deals, and bestPerUnitILS when deals exist."
+    ],
+    wallet_packages: WALLET,
+    physical_credit_packages: PHYSICAL,
+    countries: rows
+  };
+}
+
+
+async function downloadAllJSON() {
+  if (!data.length) {
+    alert("הנתונים עדיין בטעינה");
+    return;
+  }
+
+  try {
+    const exportData = await buildGlobalExport(data);
+    downloadJSON(`simtlv-full-old-plus-global-${Date.now()}.json`, exportData);
+  } catch (err) {
+    setExportStatus("");
+    alert("שגיאה ביצוא: " + String(err.message || err));
+  }
+}
+
+/////////////////////////
+// HELPERS
+/////////////////////////
+
+function gb(amount, price) {
+  return amount / price;
+}
+
+function applySimplify(value) {
+  const nearestInt = Math.round(value);
+
+  if (Math.abs(value - nearestInt) < 0.05) {
+    return nearestInt;
+  }
+
+  return Math.floor(value * 2) / 2;
+}
+
+function toggleSimplify(key) {
+  simplifyState[key] = !isSimplified(key);
+  renderAll();
+}
+
+// A clear on/off switch so it's obvious whether simplify is active.
+function simplifyToggle(key) {
+  const on = isSimplified(key);
+  const tip = on
+    ? "פישוט פעיל — לחץ כדי להציג את כל החבילות / הספרות המלאות"
+    : "פישוט כבוי — מוצגות כל החבילות והערכים המלאים";
+  return `
+    <button class="simplify-btn ${on ? 'is-on' : 'is-off'}"
+            onclick="toggleSimplify('${key}')"
+            aria-pressed="${on}"
+            title="${tip}">
+      <span class="sw" aria-hidden="true"></span>פישוט ${on ? '· פעיל' : '· כבוי'}
+    </button>
+  `;
+}
+
+function copySection(btn) {
+  // The <pre> lives at the .block level, not inside the button's immediate
+  // parent (.block-actions), so search the whole card.
+  const root = btn.closest(".block") || btn.parentElement || document;
+  const pre = root.querySelector("pre");
+  if (pre) copyText(pre.textContent);
+  else showCopyToast("אין מה להעתיק");
+}
+
+function fallbackCopyText(text) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    return true;
+  } catch (e) { return false; }
+}
+
+function copyText(text) {
+  text = String(text == null ? "" : text);
+  // navigator.clipboard only exists in a secure context (https / localhost).
+  // On file:// it is undefined, so fall back to execCommand.
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => showCopyToast())
+      .catch(() => showCopyToast(fallbackCopyText(text) ? null : "ההעתקה נכשלה"));
+  } else {
+    showCopyToast(fallbackCopyText(text) ? null : "ההעתקה נכשלה");
+  }
+}
+
+let __copyToastTimer = null;
+function showCopyToast(msg) {
+  let t = document.getElementById("copyToast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "copyToast";
+    t.style.cssText = "position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1b1f2a;color:#fff;padding:10px 18px;border-radius:999px;font-family:'Assistant',sans-serif;font-weight:700;font-size:13px;z-index:9999;opacity:0;transition:all .25s ease;box-shadow:0 12px 32px rgba(0,0,0,.28);pointer-events:none;";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg || "✓ הועתק ללוח";
+  requestAnimationFrame(() => { t.style.opacity = "1"; t.style.transform = "translateX(-50%) translateY(0)"; });
+  clearTimeout(__copyToastTimer);
+  __copyToastTimer = setTimeout(() => {
+    t.style.opacity = "0";
+    t.style.transform = "translateX(-50%) translateY(20px)";
+  }, 1400);
+}
+
+// Highest-zone filtering: when countries from different zones are selected,
+// a plan must cover all of them, so it is priced at the highest zone among
+// them. We therefore only DISPLAY prices for that highest zone.
+function getHighestZone() {
+  if (!selected.length) return null;
+  return Math.max(...selected.map(c => c.zone));
+}
+
+function getActiveSelected() {
+  const highestZone = getHighestZone();
+  if (highestZone === null) return [];
+  return selected.filter(c => c.zone === highestZone);
+}
+
+function hasMixedZones() {
+  return new Set(selected.map(c => c.zone)).size > 1;
+}
+
+function buildOrderLink(type, gbAmount) {
+  if (!selected.length) return "";
+
+  // Direct payment links, verified against the live API. The country segment
+  // accepts a comma-joined list (encoded %2C), e.g. DE%2CEG:
+  //   eSIM: https://app.simtlv.co.il/{ISOs}/{gb}gb/esim/{token}?ref=R41IMUNU
+  //   pSIM: https://app.simtlv.co.il/{ISOs}/{gb}gb/physical/{id}?ref=R41IMUNU
+  // The plan id comes from the zone that prices the card (top per-type zone).
+  const zoneField = type === "esim" ? "esimZone" : "physicalZone";
+  const topZone = Math.max(...selected.map(c => c[zoneField] ?? c.zone));
+  const country = selected.find(c => (c[zoneField] ?? c.zone) === topZone) || selected[0];
+  const plan = (country.plans[type === "esim" ? "esim" : "physical"] || [])
+    .find(p => Number(p.dataGB) === Number(gbAmount));
+  const isoSegment = encodeURIComponent(selected.map(c => c.iso).join(","));
+
+  if (plan && plan.appId !== undefined && plan.appId !== null && plan.appId !== "") {
+    const kind = type === "esim" ? "esim" : "physical";
+    return `https://app.simtlv.co.il/${isoSegment}/${gbAmount}gb/${kind}/${plan.appId}?ref=R41IMUNU`;
+  }
+
+  // Fallback: old constructed link if the API entry had no id.
+  const base = type === "esim"
+    ? "https://app.simtlv.co.il/esim/package"
+    : "https://app.simtlv.co.il/physicalsim/package";
+  return `${base}?ref=R41IMUNU&countries=${isoSegment}&plan=${gbAmount}gb`;
+}
+
+// Generic link — the customer picks the plan; covers all selected countries.
+function buildGenericAppLink() {
+  if (!selected.length) return "";
+  const isoSegment = encodeURIComponent(selected.map(c => c.iso).join(","));
+  return `https://app.simtlv.co.il/${isoSegment}?ref=R41IMUNU`;
+}
+
+function renderGigaboostChooser() {
+  if (!selected.length) return "";
+  const url = buildGenericAppLink();
+  const names = selected.map(c => c.name.he).join(", ");
+  return `
+    <div class="block chooser-strip">
+      <span class="chooser-label">🔗 קישור כללי — ${escapeHtml(names)} · הלקוח בוחר תוכנית בעצמו</span>
+      <span class="chooser-actions">
+        <button class="oa-open" onclick="window.open(${JSON.stringify(url)}, '_blank')" title="פתח">🔗 פתח</button>
+        <button class="oa-copy" onclick='copyText(${JSON.stringify(url)})' title="העתק">📋 העתק</button>
+      </span>
+    </div>
+  `;
+}
+
+function openOrderLink(type, gbAmount) {
+  const url = buildOrderLink(type, gbAmount);
+  if (url) window.open(url, "_blank");
+}
+
+function copyOrderLink(type, gbAmount) {
+  const url = buildOrderLink(type, gbAmount);
+  if (url) copyText(url);
+}
+
+/////////////////////////
+// AUTOCOMPLETE
+/////////////////////////
+
+const search = document.getElementById("search");
+const suggestions = document.getElementById("suggestions");
+
+if (search && suggestions) {
+search.addEventListener("input", () => {
+  const val = search.value.toLowerCase().trim();
+  suggestions.innerHTML = "";
+
+  if (!val) {
+    suggestions.style.display = "none";
+    return;
+  }
+
+  let matches = data.filter(c =>
+    c.name.en.toLowerCase().includes(val) ||
+    c.name.he.includes(val) ||
+    c.iso.toLowerCase().includes(val)
+  );
+
+  matches.sort((a,b) => {
+    function score(c) {
+      let s = 0;
+      if (c.name.he.startsWith(val)) s += 3;
+      if (c.name.en.toLowerCase().startsWith(val)) s += 2;
+      if (c.iso.toLowerCase().startsWith(val)) s += 2;
+      if (c.name.he.includes(val)) s += 1;
+      return s;
+    }
+    return score(b) - score(a);
+  });
+
+  matches.slice(0,10).forEach(c => {
+    const div = document.createElement("div");
+    div.textContent =
+      `${c.name.he} (Zone ${c.zone}) ($${c.credit_price_per_gb})`;
+
+    div.onclick = () => addCountry(c);
+    suggestions.appendChild(div);
+  });
+
+  suggestions.style.display = matches.length ? "block" : "none";
+});
+
+search.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const first = suggestions.firstChild;
+    if (first) first.click();
+  }
+});
+}
+
+/////////////////////////
+// COUNTRY SELECTION
+/////////////////////////
+
+function addCountry(c) {
+  if (!selected.find(x => x.iso === c.iso)) {
+    selected.push(c);
+    renderSelected();
+    renderAll();
+    ensureGlobalCountry(c);
+  }
+
+  search.value = "";
+  suggestions.style.display = "none";
+}
+
+function removeCountry(iso) {
+  selected = selected.filter(c => c.iso !== iso);
+  renderSelected();
+  renderAll();
+}
+
+function clearAllCountries() {
+  if (!selected.length) return;
+  selected = [];
+  renderSelected();
+  renderAll();
+}
+
+function renderSelected() {
+  const el = document.getElementById("selected");
+  el.innerHTML = "";
+
+  selected.forEach(c => {
+    const chip = document.createElement("div");
+    chip.className = "chip";
+
+    chip.innerHTML =
+      `${c.name.he} (Zone ${c.zone}) ($${c.credit_price_per_gb})
+      <span onclick="removeCountry('${c.iso}')">✕</span>`;
+
+    el.appendChild(chip);
+  });
+
+  const clearBtn = document.getElementById("clearCountriesBtn");
+  if (clearBtn) clearBtn.style.display = selected.length ? "inline-flex" : "none";
+}
+
+/////////////////////////
+// SECTIONS
+/////////////////////////
+
+function renderPhysical() {
+  let text = "";
+  const on = isSimplified('physicalCredit');
+
+  PHYSICAL.forEach(p => {
+    text += `₪${p.ils}\n`;
+
+    let rows = selected.map(c => {
+      let raw = gb(p.usd, c.credit_price_per_gb);
+      let val = on ? applySimplify(raw) : raw.toFixed(1);
+
+      return {
+        name: c.name.he,
+        gb: parseFloat(val)
+      };
+    });
+
+    rows.sort((a,b)=>b.gb-a.gb);
+
+    rows.forEach(r=>{
+      text += `${r.name} = ${r.gb} גיגה\n`;
+    });
+
+    text += `\n`;
+  });
+
+  return `
+    <div class="block">
+      <div class="block-tools">
+        <h3>קרדיט פיזי</h3>
+        <div class="block-actions">
+          ${simplifyToggle('physicalCredit')}
+          <button class="copy-btn ${refEdit.physical ? 'is-on' : ''}" onclick="toggleRefEdit('physical')" title="ערוך את מדרגות ה-$/₪">✎</button>
+          <button class="copy-btn" onclick="copySection(this)" title="העתק">📋 העתק</button>
+        </div>
+      </div>
+      ${refEdit.physical ? renderRefEditor('physical') : ""}
+      <pre>${text}</pre>
+    </div>
+  `;
+}
+
+function renderWallet() {
+  let text = "";
+  const on = isSimplified('wallet');
+
+  WALLET.forEach(w => {
+    text += `₪${w.ils}\n`;
+
+    let rows = selected.map(c => {
+      let raw = gb(w.usd, c.credit_price_per_gb);
+      let val = on ? applySimplify(raw) : raw.toFixed(1);
+
+      return {
+        name: c.name.he,
+        gb: parseFloat(val)
+      };
+    });
+
+    rows.sort((a,b)=>b.gb-a.gb);
+
+    rows.forEach(r=>{
+      text += `${r.name} = ${r.gb} גיגה\n`;
+    });
+
+    text += `\n`;
+  });
+
+  return `
+    <div class="block">
+      <div class="block-tools">
+        <h3>ארנק קרדיט</h3>
+        <div class="block-actions">
+          ${simplifyToggle('wallet')}
+          <button class="copy-btn ${refEdit.wallet ? 'is-on' : ''}" onclick="toggleRefEdit('wallet')" title="ערוך את מדרגות ה-$/₪">✎</button>
+          <button class="copy-btn" onclick="copySection(this)" title="העתק">📋 העתק</button>
+        </div>
+      </div>
+      ${refEdit.wallet ? renderRefEditor('wallet') : ""}
+      <pre>${text}</pre>
+    </div>
+  `;
+}
+
+function renderCreditPricing() {
+  let text = "מחיר לפי גיגה (קרדיט)\n";
+
+  let rows = selected.map(c => ({
+    name:c.name.he,
+    price:c.credit_price_per_gb
+  }));
+
+  rows.sort((a,b)=>a.price-b.price);
+
+  rows.forEach(r=>{
+    text += `${r.name} = $${r.price}\n`;
+  });
+
+  return `
+    <div class="block">
+      <div class="block-tools">
+        <h3>מחיר לגיגה (קרדיט)</h3>
+        <div class="block-actions">
+          <button class="copy-btn" onclick="copySection(this)" title="העתק">📋 העתק</button>
+        </div>
+      </div>
+      <pre>${text}</pre>
+    </div>
+  `;
+}
+
+function renderEsimPlans() {
+  if (!selected.length) return "";
+
+  let highestZone = Math.max(...selected.map(c => c.esimZone ?? c.zone));
+  let country = selected.find(c => (c.esimZone ?? c.zone) === highestZone);
+  if (!country) return "";
+
+  let plans = [...country.plans.esim].sort((a,b)=>a.dataGB-b.dataGB);
+
+  if (isSimplified('esimPlans')) {
+    plans = plans.filter(p => p.dataGB !== 1 && p.dataGB !== 7);
+  }
+
+  const esimDestCount = countriesForTypeZone("esim", highestZone).length;
+  let copyTextValue = `חבילות סים וירטואלי ל-${esimDestCount} יעדים:\n`;
+
+  plans.forEach(p => {
+    copyTextValue += `${p.dataGB} גיגה – 30 ימים – ₪${Math.round(p.priceUSD * USD_TO_ILS)}\n`;
+  });
+
+  let buttons = plans.map(p => `
+    <div class="order-row">
+      <span class="order-gb">${p.dataGB}GB</span>
+      <span class="order-price">₪${(p.priceUSD * USD_TO_ILS).toFixed(0)}</span>
+      <button class="oa-open" onclick="openOrderLink('esim', ${p.dataGB})" title="פתח קישור הזמנה בלשונית חדשה">🔗</button>
+      <button class="oa-copy" onclick="copyOrderLink('esim', ${p.dataGB})" title="העתק קישור הזמנה ללוח">📋</button>
+    </div>
+  `).join("");
+
+  return `
+    <div class="block">
+      <div class="block-tools">
+        <h3>הזמנה מהירה — eSIM - גיגהבוסט <span class="zone-pill">אזור ${highestZone}</span></h3>
+        <div class="block-actions">
+          ${simplifyToggle('esimPlans')}
+          <button class="copy-btn" onclick="copyZoneCountriesForType('esim', ${highestZone})" title="העתק את כל המדינות באזור, מסודרות לפי יבשת — לשליחה ללקוח">📋 מדינות</button>
+          <button class="copy-btn" onclick="copyQuote()" title="העתק הצעת מחיר מלאה (eSIM + פיזי) מוכנה לוואטסאפ">💬 הצעה</button>
+          <button class="copy-btn" onclick="openQuoteEditor()" title="ערוך את תבנית ההצעה">✎</button>
+          <button class="copy-btn" onclick='copyText(${JSON.stringify(copyTextValue)})' title="העתק את כל רשימת המחירים">📋 העתק הכל</button>
+        </div>
+      </div>
+      <div class="plan-orders grid">${buttons}</div>
+    </div>
+  `;
+}
+
+function renderPhysicalPlans() {
+  if (!selected.length) return "";
+
+  let highestZone = Math.max(...selected.map(c => c.physicalZone ?? c.zone));
+  let country = selected.find(c => (c.physicalZone ?? c.zone) === highestZone);
+  if (!country) return "";
+
+  let plans = [...country.plans.physical].sort((a,b)=>a.dataGB-b.dataGB);
+
+  if (isSimplified('physicalPlans')) {
+    plans = plans.filter(p => p.dataGB !== 1 && p.dataGB !== 7);
+  }
+
+  const physDestCount = countriesForTypeZone("physical", highestZone).length;
+  let copyTextValue = `חבילות סים פיזי ל-${physDestCount} יעדים:\n`;
+
+  plans.forEach(p => {
+    copyTextValue += `${p.dataGB} גיגה – 30 ימים – ₪${p.priceILS}\n`;
+  });
+
+  let buttons = plans.map(p => `
+    <div class="order-row">
+      <span class="order-gb">${p.dataGB}GB</span>
+      <span class="order-price">₪${p.priceILS}</span>
+      <button class="oa-open" onclick="openOrderLink('physical', ${p.dataGB})" title="פתח קישור הזמנה בלשונית חדשה">🔗</button>
+      <button class="oa-copy" onclick="copyOrderLink('physical', ${p.dataGB})" title="העתק קישור הזמנה ללוח">📋</button>
+    </div>
+  `).join("");
+
+  return `
+    <div class="block">
+      <div class="block-tools">
+        <h3>הזמנה מהירה — סים פיזי - גיגהבוסט <span class="zone-pill">אזור ${highestZone}</span></h3>
+        <div class="block-actions">
+          ${simplifyToggle('physicalPlans')}
+          <button class="copy-btn" onclick="copyZoneCountriesForType('physical', ${highestZone})" title="העתק את כל המדינות באזור, מסודרות לפי יבשת — לשליחה ללקוח">📋 מדינות</button>
+          <button class="copy-btn" onclick="copyQuote()" title="העתק הצעת מחיר מלאה (eSIM + פיזי) מוכנה לוואטסאפ">💬 הצעה</button>
+          <button class="copy-btn" onclick="openQuoteEditor()" title="ערוך את תבנית ההצעה">✎</button>
+          <button class="copy-btn" onclick='copyText(${JSON.stringify(copyTextValue)})' title="העתק את כל רשימת המחירים">📋 העתק הכל</button>
+        </div>
+      </div>
+      <div class="plan-orders grid">${buttons}</div>
+    </div>
+  `;
+}
+
+
+function getOldComparablePriceILS(country, simType, dataGB) {
+  if (!country) return null;
+
+  if (simType === "esim") {
+    const match = (country.plans.esim || []).find(p => Number(p.dataGB) === Number(dataGB));
+    return match ? round2(Number(match.priceUSD) * USD_TO_ILS) : null;
+  }
+
+  if (simType === "physical_sim") {
+    const match = (country.plans.physical || []).find(p => Number(p.dataGB) === Number(dataGB));
+    return match ? Number(match.priceILS) : null;
+  }
+
+  return null;
+}
+
+function comparePriceMark(newPrice, oldPrice) {
+  if (!oldPrice || !newPrice) return "";
+
+  const diff = round2(newPrice - oldPrice);
+
+  if (diff < 0) {
+    return `<span class="price-badge good best">האתר זול ב-${Math.abs(diff)}₪ לכל סים</span>`;
+  }
+
+  if (diff > 0) {
+    return `<span class="price-badge bad">האתר יקר ב-${diff}₪</span>`;
+  }
+
+  return `<span class="price-badge same">זהה</span>`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getBestDeal(pkg) {
+  if (!pkg.deals || !pkg.deals.length) return null;
+  return [...pkg.deals].sort((a,b) => a.perUnitILS - b.perUnitILS || a.quantity - b.quantity)[0];
+}
+
+function formatDealShort(deal) {
+  if (!deal) return "";
+  if (deal.quantity === 2) return `זוג ב${deal.totalILS} ש"ח`;
+  return `${deal.quantity} יח׳ ב${deal.totalILS} ש"ח`;
+}
+
+function formatGlobalPlanLine(pkg) {
+  const parts = [
+    `${pkg.dataGB} גיגה`,
+    `${pkg.validityDays} ימים`,
+    `₪${pkg.base.totalILS}`
+  ];
+
+  const bestDeal = getBestDeal(pkg);
+  if (bestDeal) {
+    parts.push(`${formatDealShort(bestDeal)} (₪${bestDeal.perUnitILS} לכרטיס)`);
+  }
+
+  return parts.join(" – ");
+}
+
+function formatTopupPlanLine(pkg) {
+  const bestDeal = getBestDeal(pkg);
+  const parts = [
+    `${pkg.dataGB} גיגה`,
+    `${pkg.validityDays} ימים`,
+    `₪${pkg.base.totalILS}`
+  ];
+
+  if (bestDeal) {
+    const dealLabel = bestDeal.quantity === 2
+      ? `זוג ₪${bestDeal.totalILS}`
+      : `${bestDeal.quantity}× ₪${bestDeal.totalILS}`;
+    parts.push(`${dealLabel} (₪${bestDeal.perUnitILS} לכרטיס)`);
+  }
+
+  return parts.join(" – ");
+}
+
+
+function formatGlobalPlanListText(displayPackages) {
+  return (displayPackages || []).map(formatGlobalPlanLine).join("\n");
+}
+
+// Make a checkout link cover every country of the zone, not just one.
+// The SimTLV checkout expects countries pipe-separated, e.g. fly_countries=KH|VN.
+// It also honours empty_cart (clear cart first) and quantity (WooCommerce).
+function buildCheckoutUrl(url, isBase, isos, quantityOverride = null, forceEmptyCart = cartSettings.emptyCart) {
+  if (!url) return url;
+  const list = (isos || []).slice().sort();   // stable order, e.g. KH|VN
+
+  const explicitQty = quantityOverride !== null && quantityOverride !== undefined;
+  const qty = explicitQty
+    ? parseInt(quantityOverride, 10)
+    : (isBase ? parseInt(cartSettings.quantity || 1, 10) : null);
+
+  try {
+    const u = new URL(url);
+    if (list.length) u.searchParams.set("fly_countries", list.join("|"));
+    u.searchParams.set("ref", "R41IMUNU");
+
+    if (forceEmptyCart) u.searchParams.set("empty_cart", "true");
+    else u.searchParams.delete("empty_cart");
+
+    if (Number.isFinite(qty) && qty > 1) u.searchParams.set("quantity", String(qty));
+    else if (explicitQty || isBase) u.searchParams.set("quantity", "1");
+
+    // Keep the pipe readable like the real site (KH|VN, not KH%7CVN).
+    return u.toString().replace(/%7C/gi, "|");
+  } catch (e) {
+    let out = String(url);
+    if (list.length) {
+      out = out.includes("fly_countries=")
+        ? out.replace(/fly_countries=[^&]*/g, `fly_countries=${list.join("|")}`)
+        : out + (out.includes("?") ? "&" : "?") + `fly_countries=${list.join("|")}`;
+    }
+    const joiner = out.includes("?") ? "&" : "?";
+    if (forceEmptyCart && !out.includes("empty_cart=")) out += `${joiner}empty_cart=true`;
+    return out;
+  }
+}
+
+
+function registerOrderPackage(simType, pkg, isos) {
+  const key = [simType, pkg.base?.productId || "noid", pkg.dataGB, pkg.validityDays]
+    .join("_")
+    .replace(/[^a-zA-Z0-9_\-]/g, "_");
+  orderPackageRegistry[key] = { simType, pkg, isos: (isos || []).slice().sort() };
+  return key;
+}
+
+function getBuilderQtyForKey(key) {
+  const item = orderBuilderItems.find(x => x.key === key);
+  return item ? item.qty : "";
+}
+
+function chooseOrderVariant(pkg, qty) {
+  const exactDeal = (pkg.deals || [])
+    .filter(d => d.checkoutUrl && Number(d.quantity) === Number(qty))
+    .sort((a,b) => a.perUnitILS - b.perUnitILS)[0];
+
+  if (exactDeal) {
+    return {
+      isBase: false,
+      source: "deal",
+      checkoutUrl: exactDeal.checkoutUrl,
+      productId: exactDeal.productId,
+      perUnitILS: exactDeal.perUnitILS,
+      totalILS: exactDeal.totalILS,
+      sourceLabel: formatDealShort(exactDeal)
+    };
+  }
+
+  return {
+    isBase: true,
+    source: "base",
+    checkoutUrl: pkg.base?.checkoutUrl,
+    productId: pkg.base?.productId,
+    perUnitILS: pkg.base?.perUnitILS,
+    totalILS: round2((pkg.base?.perUnitILS || 0) * qty),
+    sourceLabel: "מחיר יחיד לפי מספר"
+  };
+}
+
+function setPackageOrderQuantity(key) {
+  const entry = orderPackageRegistry[key];
+  if (!entry) return;
+
+  const input = document.getElementById(`qty_${key}`);
+  const qty = parseInt(input?.value, 10);
+
+  orderBuilderItems = orderBuilderItems.filter(x => x.key !== key);
+
+  if (!Number.isFinite(qty) || qty <= 0) {
+    renderAll();
+    return;
+  }
+
+  const { simType, pkg, isos } = entry;
+  const variant = chooseOrderVariant(pkg, qty);
+
+  if (!variant.checkoutUrl) {
+    alert("אין קישור הזמנה לחבילה הזו");
+    return;
+  }
+
+  const label = `${simTypeHebrew(simType)} ${pkg.dataGB}GB ×${qty} · ${variant.perUnitILS}₪ ליח׳ · ${variant.sourceLabel}`;
+
+  orderBuilderItems.push({
+    key,
+    simType,
+    dataGB: pkg.dataGB,
+    validityDays: pkg.validityDays,
+    qty,
+    label,
+    checkoutUrl: variant.checkoutUrl,
+    productId: variant.productId,
+    isBase: variant.isBase,
+    isos,
+    perUnitILS: variant.perUnitILS,
+    totalILS: variant.totalILS,
+    source: variant.source
+  });
+
+  orderBuilderItems.sort((a,b) => {
+    if (a.simType !== b.simType) return a.simType === "physical_sim" ? -1 : 1;
+    return a.dataGB - b.dataGB;
+  });
+
+  renderAll();
+}
+
+function removeOrderBuilderItem(key) {
+  orderBuilderItems = orderBuilderItems.filter(x => x.key !== key);
+  renderAll();
+}
+
+function clearOrderBuilder() {
+  orderBuilderItems = [];
+  renderAll();
+}
+
+function renderGlobalPurchaseLinks(pkg, isos, simType) {
+  const bestDeal = getBestDeal(pkg);
+  const key = registerOrderPackage(simType, pkg, isos);
+  const qtyValue = getBuilderQtyForKey(key);
+
+  function linkGroup(label, url, isBase, extraClass = "") {
+    if (!url) return "";
+    const finalUrl = buildCheckoutUrl(url, isBase, isos);
+    const safeUrl = escapeHtml(finalUrl);
+    const jsUrl = escapeHtml(JSON.stringify(finalUrl));
+    const qtyNote = isBase && cartSettings.quantity > 1 ? ` ×${cartSettings.quantity}` : "";
+    return `
+      <span class="link-group ${extraClass}">
+        <span class="link-label">${label}${qtyNote}</span>
+        <a class="lk-open" href="${safeUrl}" target="_blank" rel="noopener" title="פתח קישור הזמנה (${label}) בלשונית חדשה">🔗</a>
+        <button class="lk-copy" onclick='copyText(${jsUrl})' title="העתק קישור הזמנה (${label}) ללוח">📋</button>
+      </span>
+    `;
+  }
+
+  const dealLabel = bestDeal
+    ? `דיל ${bestDeal.perUnitILS}₪/סים`
+    : "";
+
+  const numberControl = `
+    <span class="number-order-group" title="בחר כמות לחבילה הזו והוסף אותה להזמנה המשולבת">
+      <span class="link-label">מספר</span>
+      <input id="qty_${key}" type="number" min="0" step="1" value="${escapeHtml(qtyValue)}" placeholder="0"
+             onkeydown="if(event.key==='Enter'){setPackageOrderQuantity('${key}')}">
+      <button class="lk-set" onclick="setPackageOrderQuantity('${key}')">קבע</button>
+    </span>
+  `;
+
+  const baseGroup = linkGroup("יחיד", pkg.base?.checkoutUrl, true);
+  const dealGroup = bestDeal ? linkGroup(dealLabel, bestDeal.checkoutUrl, false, "best-deal-link") : "";
+
+  return `<div class="global-links purchase-actions">${baseGroup}${dealGroup}${numberControl}</div>`;
+}
+
+function renderGlobalPlanRows(country, simType, displayPackages, isos) {
+  if (!displayPackages.length) {
+    return `<div class="global-empty">לא נמצאו חבילות רלוונטיות.</div>`;
+  }
+
+  return displayPackages.map(pkg => {
+    const oldPrice = getOldComparablePriceILS(country, simType, pkg.dataGB);
+    const bestPrice = pkg.bestPerUnitILS || pkg.base?.perUnitILS;
+    const cheaper = oldPrice && bestPrice && bestPrice < oldPrice;
+    const mark = comparePriceMark(bestPrice, oldPrice);
+    const rowClass = cheaper ? "global-line is-cheaper" : "global-line";
+
+    const bestDeal = getBestDeal(pkg);
+    const baseLine = `${pkg.dataGB} גיגה · ${pkg.validityDays} ימים · ${pkg.base.totalILS}₪`;
+    const dealLabel = bestDeal
+      ? ` · ${bestDeal.quantity === 2 ? "זוג" : bestDeal.quantity + " יח׳"} ${bestDeal.totalILS}₪`
+      : "";
+    const dealTip = bestDeal
+      ? `<button class="info-tip" data-tip="${escapeHtml(bestDeal.perUnitILS + ' ש"ח לכרטיס')}">i</button>`
+      : "";
+
+    return `
+      <div class="${rowClass}">
+        <div class="global-line-text">${escapeHtml(baseLine + dealLabel)}${mark}${dealTip}</div>
+        ${renderGlobalPurchaseLinks(pkg, isos, simType)}
+      </div>
+    `;
+  }).join("");
+}
+
+function renderGlobalSimColumn(country, simType, displayPackages, isos) {
+  const typeZone = simType === "esim"
+    ? (country.esimZone ?? country.zone)
+    : (country.physicalZone ?? country.zone);
+  const typeLabel = simType === "esim"
+    ? `בסיסי · eSIM · אזור ${typeZone}`
+    : `בסיסי · סים פיזי · אזור ${typeZone}`;
+  const destCount = countriesForTypeZone(simType, typeZone).length;
+  const listText = formatGlobalPlanListText(displayPackages);
+  const copyTextValue = listText
+    ? `חבילות ${simType === "esim" ? "סים וירטואלי" : "סים פיזי"} ל-${destCount} יעדים:\n${listText}`
+    : "";
+  const copyButton = copyTextValue
+    ? `<button class="global-copy-btn" onclick='copyText(${JSON.stringify(copyTextValue)})'>📋 העתק</button>`
+    : "";
+
+  return `
+    <div class="global-sim-column">
+      <div class="global-sim-titlebar">
+        <div class="global-sim-title">${typeLabel}</div>
+        ${copyButton}
+      </div>
+      <div class="global-lines">
+        ${renderGlobalPlanRows(country, simType, displayPackages, isos)}
+      </div>
+    </div>
+  `;
+}
+
+// Force a fresh fetch for all countries of a zone (clears their cache first).
+function refreshGlobalZone(zone) {
+  selected.filter(c => c.zone === zone).forEach(c => { delete globalCache[c.iso]; });
+  persistGlobalCache();
+  loadGlobalForSelected();
+}
+
+
+
+
+function renderOrderBuilderPanel() {
+  if (!orderBuilderItems.length) return "";
+
+  const total = round2(orderBuilderItems.reduce((sum, item) => sum + (Number(item.totalILS) || 0), 0));
+  const lines = orderBuilderItems.map(item => `
+    <div class="order-builder-line">
+      <div class="order-builder-label">${escapeHtml(item.label)}</div>
+      <div class="order-builder-price">₪${escapeHtml(item.totalILS)}</div>
+      <button class="order-builder-remove" onclick="removeOrderBuilderItem('${escapeHtml(item.key)}')" title="הסר מההזמנה">✕</button>
+    </div>
+  `).join("");
+
+  return `
+    <div class="block order-builder-card">
+      <div class="order-builder-head">
+        <div><h3>פריטים (${orderBuilderItems.length})</h3></div>
+        <button onclick="clearOrderBuilder()">נקה הכל</button>
+      </div>
+      <div class="order-builder-lines">${lines}</div>
+      <div class="order-builder-footer">
+        <div class="order-builder-total">סה״כ משוער: ₪${total}</div>
+        <div class="order-builder-actions">
+          <button class="run-order" onclick="startGeneratedOrderFromBuilder()">צור הזמנה אוטומטית</button>
+          <button onclick="copyGeneratedOrderLink()">📋 העתק קישור הזמנה</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// One combined card for a whole zone (all selected countries that share it).
+function renderGlobalZoneBlock(zone, countries, cached) {
+  const rep = countries[0];
+  const isos = countries.map(c => c.iso);
+  const key = 'global_' + zone;
+  const on = isSimplified(key);
+
+  const physical = getDisplayGlobalPackages(cached.physical_sim || [], on);
+  const esim = getDisplayGlobalPackages(cached.esim || [], on);
+
+  let errorHtml = "";
+  if (cached.errors && cached.errors.length) {
+    errorHtml = `<div class="global-error-text">שגיאות API: ${cached.errors.map(e => `${escapeHtml(e.simType)}: ${escapeHtml(e.message)}`).join(" | ")}</div>`;
+  }
+
+  const countryNames = countries.map(c => c.name.he).join(", ");
+
+  return `
+    <div class="block global-clean-card manual-priority">
+      <div class="global-clean-head">
+        <div>
+          <h3>תוכניות בסיסי <span class="zone-pill">אזור ${zone}</span></h3>
+          <div class="global-clean-subtitle">${escapeHtml(countryNames)}</div>
+        </div>
+        <div class="block-actions">
+          ${simplifyToggle(key)}
+          <button onclick="copyZoneCountries(${zone})" title="העתק את כל קודי המדינות באזור ${zone} (מופרד בפסיק)">📋 כל מדינות האזור</button>
+          <button onclick="refreshGlobalZone(${zone})" title="רענן מחירים מה‑API">🔄 רענן</button>
+        </div>
+      </div>
+      ${renderPriceChangesBanner(cached)}
+      <div class="global-clean-grid">
+        ${renderGlobalSimColumn(rep, "physical_sim", physical, isos)}
+        ${renderGlobalSimColumn(rep, "esim", esim, isos)}
+      </div>
+      ${errorHtml}
+    </div>
+  `;
+}
+
+function renderGlobalPlans() {
+  if (!selected.length) return "";
+
+  // All "active" countries share the highest zone; show them as ONE card.
+  const active = getActiveSelected();
+  if (!active.length) return "";
+
+  const zone = active[0].zone;
+  const countryNames = active.map(c => c.name.he).join(", ");
+  const rep = active.find(c => globalCache[c.iso]);
+  const loading = active.some(c => globalLoading[c.iso]);
+
+  if (!rep) {
+    if (loading) {
+      return `
+        <div class="block global-loading-card">
+          <h3>מחירים חדשים — אזור ${zone}</h3>
+          <div class="global-clean-subtitle">${escapeHtml(countryNames)}</div>
+          <p>טוען API חדש...</p>
+        </div>
+      `;
+    }
+    return `
+      <div class="block global-loading-card">
+        <h3>מחירים חדשים — אזור ${zone}</h3>
+        <div class="global-clean-subtitle">${escapeHtml(countryNames)}</div>
+        <p>עוד לא נטען.</p>
+        <button onclick="loadGlobalForSelected()">טען עכשיו</button>
+      </div>
+    `;
+  }
+
+  return renderGlobalZoneBlock(zone, active, globalCache[rep.iso]);
+}
+
+
+
+function orderRunnerMarkup(items, title = "Your Order is Ready", status = "Tap below to add everything to your cart.", showButton = false) {
+  const itemRows = items.map(item => `
+    <div class="order-runner-item">
+      <span class="order-runner-dot"></span>
+      <span>${escapeHtml(item.label)}</span>
+      <span class="order-runner-qty">Qty: ${escapeHtml(item.qty)}</span>
+    </div>
+  `).join("");
+
+  const dots = items.map((_, i) => `<span id="orderDot_${i}"></span>`).join("");
+
+  return `
+    <div class="order-runner-card">
+      <button class="order-runner-close" onclick="closeOrderOverlay()" title="סגור">×</button>
+      <div class="order-runner-logo">Sim<span>TLV</span></div>
+      <div class="order-runner-sub">Generated Order</div>
+      <div class="order-runner-icon" id="orderRunnerIcon">🛒</div>
+      <div class="order-runner-title" id="orderRunnerTitle">${escapeHtml(title)}</div>
+      <div class="order-runner-status" id="orderRunnerStatus">${escapeHtml(status)}</div>
+      <div class="order-runner-items">${itemRows}</div>
+      <div class="order-runner-progress" id="orderRunnerProgress">${dots}</div>
+      ${showButton ? `<button class="run-order" onclick="startGeneratedOrderItems(window.__standaloneOrderItems || [])">Proceed to Checkout →</button>` : ""}
+    </div>
+  `;
+}
+
+function openOrderOverlay(items) {
+  let overlay = document.getElementById("orderOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "orderOverlay";
+    overlay.className = "order-overlay";
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = orderRunnerMarkup(items, "Preparing your order", "Please keep this page open while each item is added.");
+  overlay.classList.add("is-open");
+}
+
+function closeOrderOverlay() {
+  const overlay = document.getElementById("orderOverlay");
+  if (overlay) overlay.classList.remove("is-open");
+}
+
+function setOrderRunnerProgress(activeIndex, itemsLength) {
+  for (let i = 0; i < itemsLength; i++) {
+    const dot = document.getElementById(`orderDot_${i}`);
+    if (!dot) continue;
+    dot.className = i < activeIndex ? "done" : (i === activeIndex ? "active" : "");
+  }
+}
+
+function setOrderRunnerText(title, status, icon = "🛒") {
+  const titleEl = document.getElementById("orderRunnerTitle");
+  const statusEl = document.getElementById("orderRunnerStatus");
+  const iconEl = document.getElementById("orderRunnerIcon");
+  if (titleEl) titleEl.textContent = title;
+  if (statusEl) statusEl.textContent = status;
+  if (iconEl) iconEl.textContent = icon;
+}
+
+function sleepOrder(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function startGeneratedOrderItems(items) {
+  if (!items || !items.length) {
+    alert("אין פריטים להזמנה");
+    return;
+  }
+
+  openOrderOverlay(items);
+
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 1);
+  const features = isMobile ? "" : "width=1,height=1,left=-9999,top=-9999";
+
+  // Browsers allow only ONE popup per user gesture, so with 3+ items any
+  // extra window.open gets silently blocked and those items never reach the
+  // cart. Instead we open a single named window inside the click gesture and
+  // NAVIGATE it from item to item — re-navigating an existing window needs no
+  // popup permission, so any number of items works with exactly one popup.
+  let bg = null;
+  if (items.length > 1) {
+    try { bg = window.open("about:blank", "simtlv_bg_runner", features); } catch (e) { bg = null; }
+    if (!bg) {
+      closeOrderOverlay();
+      alert("הדפדפן חסם את חלון הרקע. אשר חלונות קופצים (Popups) לאתר הזה ונסה שוב.");
+      return;
+    }
+    try { bg.blur(); window.focus(); } catch (e) {}
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const url = buildOrderItemUrl(item, i);
+
+    setOrderRunnerProgress(i, items.length);
+    setOrderRunnerText(i === 0 ? "Preparing your order" : "Almost there", `Adding ${item.label}…`, "🛒");
+
+    if (i < items.length - 1) {
+      try { bg.location.href = url; bg.blur(); window.focus(); } catch (e) {}
+      await sleepOrder(3600);
+    } else {
+      try { if (bg && !bg.closed) bg.close(); } catch (e) {}
+      setOrderRunnerText("Loading checkout", "Final item is being added. Redirecting to checkout…", "✨");
+      setOrderRunnerProgress(items.length - 1, items.length);
+      await sleepOrder(700);
+      window.location.href = url;
+    }
+  }
+}
+
+function startGeneratedOrderFromBuilder() {
+  startGeneratedOrderItems(orderBuilderItems.slice());
+}
+
+function encodeOrderPayload(payload) {
+  const json = JSON.stringify(payload);
+  const encoded = btoa(unescape(encodeURIComponent(json)));
+  return encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function decodeOrderPayload(value) {
+  const padded = String(value || "").replace(/-/g, "+").replace(/_/g, "/") + "===".slice((String(value || "").length + 3) % 4);
+  return JSON.parse(decodeURIComponent(escape(atob(padded))));
+}
+
+
+function copyGeneratedOrderLink() {
+  if (!orderBuilderItems.length) {
+    alert("אין פריטים להזמנה");
+    return;
+  }
+  copyText(getGeneratedOrderLink());
+  setExportStatus("קישור הזמנה משולבת הועתק ללוח.");
+}
+
+function renderStandaloneOrderPortal() {
+  const loadingEl = document.getElementById("loading");
+  if (loadingEl) loadingEl.style.display = "none";
+
+  let items = [];
+  try {
+    const raw = new URLSearchParams(window.location.search).get(ORDER_PAYLOAD_PARAM);
+    const payload = decodeOrderPayload(raw);
+    cartSettings.emptyCart = payload.emptyCart !== false;
+    items = Array.isArray(payload.items) ? payload.items : [];
+  } catch (e) {
+    items = [];
+  }
+
+  window.__standaloneOrderItems = items;
+  document.body.classList.add("order-mode");
+  const container = document.querySelector(".app");
+  if (!container) return;
+
+  if (!items.length) {
+    container.innerHTML = `<div class="order-runner-card"><div class="order-runner-title">Link error</div><div class="order-runner-status">Missing or invalid order data.</div></div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="standalone-order-card">${orderRunnerMarkup(items, "Your Order is Ready", "Your generated bundle is ready. Tap below to add everything to the cart.", true)}</div>`;
+}
+
+function renderCustomAmount() {
+  const input = document.getElementById("customAmount");
+
+  if (!input.value || !selected.length) return "";
+
+  const usd = parseFloat(input.value);
+  if (isNaN(usd)) return "";
+
+  const on = isSimplified('custom');
+  let text = `$${usd}\n`;
+
+  let rows = selected.map(c => {
+    const raw = usd / c.credit_price_per_gb;
+    return {
+      name: c.name.he,
+      gb: on ? applySimplify(raw) : parseFloat(raw.toFixed(1))
+    };
+  });
+
+  rows.sort((a,b)=>b.gb-a.gb);
+
+  rows.forEach(r=>{
+    text += `${r.name} = ${r.gb} גיגה\n`;
+  });
+
+  return `
+    <div class="block">
+      <div class="block-tools">
+        <h3>סכום מותאם ($${usd})</h3>
+        <div class="block-actions">
+          ${simplifyToggle('custom')}
+          <button class="copy-btn" onclick="copySection(this)" title="העתק">📋 העתק</button>
+        </div>
+      </div>
+      <pre>${text}</pre>
+    </div>
+  `;
+}
+
+function renderZoneNote() {
+  if (!hasMixedZones()) return "";
+
+  const highestZone = getHighestZone();
+  const zonesList = [...new Set(selected.map(c => c.zone))].sort((a,b)=>a-b).join(", ");
+
+  return `
+    <div class="block zone-note">
+      <span class="zone-note-badge">אזור ${highestZone}</span>
+      <span class="zone-note-text">
+        בחרת מדינות מאזורים שונים (${zonesList}). חבילות הרכישה (eSIM / פיזי / מחירים חדשים) מתומחרות לפי <b>אזור ${highestZone}</b> — האזור הגבוה שמכסה את כל היעדים, וקישורי ההזמנה כוללים את כל המדינות שנבחרו.
+        טבלאות הקרדיט למטה ממשיכות להציג את <b>כל</b> המדינות שבחרת.
+      </span>
+    </div>
+  `;
+}
+
+
+
+
+// Override master simplify key collection to include the topup scanner card.
+function allSimplifyKeys() {
+  const keys = ['esimPlans', 'physicalPlans', 'physicalCredit', 'wallet', 'custom', 'topup'];
+  [...new Set(selected.map(c => c.zone))].forEach(z => keys.push('global_' + z));
+  return keys;
+}
+
+/////////////////////////
+// TOP-UP SCANNER UPGRADE · PRELOADED INVENTORY MODE
+/////////////////////////
+
+const TOPUP_CACHE_STORAGE_KEY = "simtlv_topup_cache_v2_preload_20260529";
+const TOPUP_ICCID_STORAGE_KEY = "simtlv_topup_iccid_inventory_v2_defaultseed_20260529";
+const TOPUP_PRELOAD_CONCURRENCY = 6;
+
+const TOPUP_DEFAULT_ICCID_GROUPS = [
+  {
+    name: "eSIM V3",
+    items: [
+      "8948010000077791457",
+      "8948010000063363337",
+      "8948010000027769918",
+      "8948010000052116480"
+    ]
+  },
+  {
+    name: "pSIM V2",
+    items: [
+      "8948010000012743142",
+      "8948010000059957639",
+      "8948010000060024171",
+      "8937204017186230887"
+    ]
+  },
+  {
+    name: "pSIM V1",
+    items: [
+      "8943108169999022608",
+      "8943108166001515249"
+    ]
+  }
+];
+
+const TOPUP_GENERIC_ICCID_PATTERNS = [
+  { name: "eSIM V2 / V3", value: "8948010000077XXXXXX · 8948010000063XXXXXX · 8948010000052XXXXXX" },
+  { name: "pSIM V2", value: "89480100000127XXXXX · 89480100000599XXXXX · 89480100000600XXXXX · 89372040171862XXXXX" },
+  { name: "pSIM V1", value: "894310816999XXXXXXX · 894310816600XXXXXXX" }
+];
+
+function getDefaultTopupIccids() {
+  return TOPUP_DEFAULT_ICCID_GROUPS.flatMap(group => group.items);
+}
+
+function getTopupIccidGroup(iccid) {
+  const normalized = normalizeIccid(iccid);
+  const found = TOPUP_DEFAULT_ICCID_GROUPS.find(group => group.items.includes(normalized));
+  return found ? found.name : "מותאם אישית";
+}
+
+function topupIccidLabel(iccid) {
+  const group = getTopupIccidGroup(iccid);
+  return `${shortIccid(iccid)} · ${group}`;
+}
+
+function formatTopupInventoryText(iccids) {
+  const list = mergeIccids(getDefaultTopupIccids(), iccids || []);
+  const defaultSet = new Set(getDefaultTopupIccids());
+
+  const parts = TOPUP_DEFAULT_ICCID_GROUPS.map(group => {
+    const values = list.filter(iccid => group.items.includes(iccid));
+    return `${group.name}\n${values.join("\n")}`;
+  });
+
+  const custom = list.filter(iccid => !defaultSet.has(iccid));
+  if (custom.length) parts.push(`מותאם אישית\n${custom.join("\n")}`);
+
+  return parts.join("\n\n");
+}
+
+function renderTopupGenericPatterns() {
+  const rows = TOPUP_GENERIC_ICCID_PATTERNS.map(row => `
+    <div class="topup-pattern-row">
+      <span class="topup-pattern-name">${escapeHtml(row.name)}</span>
+      <span class="topup-pattern-value">${escapeHtml(row.value)}</span>
+    </div>
+  `).join("");
+
+  return `
+    <div class="topup-patterns">
+      <div class="topup-pattern-title">זיהוי משפחות ICCID גנריות</div>
+      ${rows}
+    </div>
+  `;
+}
+
+let topupState = {
+  iccid: "",
+  iccidText: "",
+  loading: false,
+  preloading: false,
+  preloadDone: 0,
+  preloadTotal: 0,
+  preloadErrors: 0,
+  preloadMessage: "",
+  preloadErrorList: [],
+  error: "",
+  result: null,
+  cache: {},
+  knownIccids: [],
+  cacheLoaded: false,
+  inventoryLoaded: false
+};
+
+function normalizeIccid(value) {
+  return String(value || "").replace(/\D/g, "").slice(0, 24);
+}
+
+function parseIccidsFromText(value) {
+  const found = String(value || "")
+    .split(/[^0-9]+/g)
+    .map(normalizeIccid)
+    .filter(x => x.length >= 18);
+  return [...new Set(found)];
+}
+
+function mergeIccids(existing, incoming) {
+  return [...new Set([...(existing || []), ...(incoming || [])].map(normalizeIccid).filter(x => x.length >= 18))];
+}
+
+function loadPersistedTopupCache() {
+  if (topupState.cacheLoaded) return;
+  topupState.cacheLoaded = true;
+  try {
+    const saved = localStorage.getItem(TOPUP_CACHE_STORAGE_KEY);
+    if (!saved) return;
+    const parsed = JSON.parse(saved);
+    if (parsed && typeof parsed === "object") topupState.cache = parsed;
+  } catch (e) {
+    console.warn("Could not load topup cache", e);
+  }
+}
+
+
+
+function persistTopupIccids() {
+  try {
+    localStorage.setItem(TOPUP_ICCID_STORAGE_KEY, JSON.stringify(topupState.knownIccids));
+  } catch (e) {
+    console.warn("Could not save topup ICCID inventory", e);
+  }
+}
+
+
+function selectTopupIccid(value) {
+  setTopupIccid(value, true);
+}
+
+function setTopupIccidText(value) {
+  topupState.iccidText = String(value || "");
+  const countEl = document.getElementById("topupIccidCount");
+  if (countEl) countEl.textContent = `${parseIccidsFromText(value).length} ICCID`;
+}
+
+function saveTopupIccidInventory() {
+  const textarea = document.getElementById("topupIccidBulk");
+  const text = textarea ? textarea.value : topupState.iccidText;
+  const parsed = mergeIccids(getDefaultTopupIccids(), parseIccidsFromText(text));
+
+  topupState.knownIccids = parsed;
+  topupState.iccidText = formatTopupInventoryText(parsed);
+  if (!topupState.iccid && parsed.length) topupState.iccid = parsed[0];
+  if (topupState.iccid && parsed.length && !parsed.includes(topupState.iccid)) topupState.iccid = parsed[0];
+  persistTopupIccids();
+
+  topupState.error = parsed.length ? "" : "לא נשמרו ICCIDים. הדבק רשימה תקינה, אחד בכל שורה.";
+  renderAll();
+}
+
+function addCurrentTopupIccidToInventory() {
+  const iccid = normalizeIccid(topupState.iccid || document.getElementById("topupIccid")?.value || "");
+  if (iccid.length < 18) {
+    topupState.error = "ICCID קצר מדי. הדבק ICCID מלא לפני שמירה למאגר.";
+    renderAll();
+    return;
+  }
+  topupState.knownIccids = mergeIccids(topupState.knownIccids, [iccid]);
+  topupState.iccidText = formatTopupInventoryText(topupState.knownIccids);
+  persistTopupIccids();
+  topupState.error = "";
+  renderAll();
+}
+
+
+function clearTopupInventory() {
+  topupState.knownIccids = mergeIccids(getDefaultTopupIccids(), []);
+  topupState.iccidText = formatTopupInventoryText(topupState.knownIccids);
+  topupState.iccid = topupState.knownIccids[0] || "";
+  topupState.result = null;
+  topupState.error = "";
+  persistTopupIccids();
+  renderAll();
+}
+
+
+function getTopupCountries() {
+  return selected.slice();
+}
+
+function getTopupCountryKey(countries = getTopupCountries()) {
+  return countries.map(c => c.iso).sort().join("|");
+}
+
+function getTopupCacheKeyFor(iccid, countries = getTopupCountries()) {
+  return `${normalizeIccid(iccid)}|${getTopupCountryKey(countries)}`;
+}
+
+
+function buildTopupSearchUrl(iccid, countries) {
+  const params = new URLSearchParams();
+  params.set("action", "esim_global_ajax");
+  params.set("task", "search_topup");
+  params.set("on_what_dates", GLOBAL_API_DATE_RANGE);
+  countries.forEach(c => params.append("fly_countries[]", c.iso));
+  params.set("your_iccid", iccid);
+  return "https://simtlv.co.il/wp-admin/admin-ajax.php?" + params.toString();
+}
+
+
+
+async function fetchTopupPackages(iccid, countries) {
+  const url = buildTopupSearchUrl(iccid, countries);
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`Topup ${iccid}: HTTP ${res.status}`);
+  }
+
+  const json = await res.json();
+  return parseTopupResult(json, iccid, countries, url);
+}
+
+function parseTopupResult(apiResponse, iccid, countries, requestUrl) {
+  const products = parseGlobalProducts(apiResponse, "topup", {
+    maxValidityDays: 30,
+    dedupe: true
+  }).map(pkg => ({ ...pkg, isTopup: true, topupIccid: iccid }));
+
+  const html = apiResponse?.data?.products || "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const hiddenText = (doc.querySelector('div[style*="display:none"]')?.textContent || doc.body?.textContent || "")
+    .replace(/\r/g, "\n");
+
+  const simTypeMatch = hiddenText.match(/SIMType:\s*([^\n<]*)/i);
+  const simTypeText = (simTypeMatch?.[1] || "").trim();
+
+  const regionCodeMatch = hiddenText.match(/\[country_code\]\s*=>\s*([A-Z0-9]+)/i);
+  const regionNameMatch = hiddenText.match(/\[region_name\]\s*=>\s*([^\n]+)/i);
+  const caseMatch = hiddenText.match(/case_TV:\s*([^\n<]*)/i);
+
+  const searchPhysical = Number(apiResponse?.data?.search_physical || 0);
+  const firstUrl = products[0]?.base?.checkoutUrl || "";
+  const checkoutInfo = getCheckoutUrlInfo(firstUrl);
+
+  let kind = "eSIM topup";
+  let kindShort = "eSIM";
+  if (searchPhysical) {
+    if (simTypeText) {
+      kind = `סים פיזי · ${simTypeText}`;
+      kindShort = simTypeText.includes("V2") ? "pSIM V2" : "pSIM";
+    } else {
+      kind = "סים פיזי ישן / אזורי";
+      kindShort = "pSIM ישן";
+    }
+  }
+
+  return {
+    key: getTopupCacheKeyFor(iccid, countries),
+    iccid,
+    requestedCountries: countries.map(c => ({ iso: c.iso, he: c.name.he, en: c.name.en, zone: c.zone })),
+    requestUrl,
+    rawSuccess: apiResponse?.success === true,
+    zone: apiResponse?.data?.zone ?? null,
+    searchPhysical,
+    simTypeText,
+    caseText: (caseMatch?.[1] || "").trim(),
+    regionCode: regionCodeMatch?.[1] || checkoutInfo.flyCountries || "",
+    regionName: (regionNameMatch?.[1] || "").trim(),
+    checkoutInfo,
+    kind,
+    kindShort,
+    packages: products
+  };
+}
+
+
+
+// Parser override for topups; topup products are restricted to 30 days max.
+function parseGlobalProducts(apiResponse, simType, options = {}) {
+  const html = apiResponse?.data?.products || "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const maxValidityDays = options.maxValidityDays ?? 30;
+
+  let products = [...doc.querySelectorAll(".esim-global-product-item")].map(item => {
+    const text = selector =>
+      item.querySelector(selector)?.textContent.trim().replace(/\s+/g, " ") || "";
+
+    const gbText = text(".package-gb");
+    const daysText = text(".package-days");
+    const priceText = text(".price-wrap");
+    const baseLink = item.querySelector("a.buy-now-with-icon");
+
+    const dataGB = parseFloat(gbText.match(/[\d.]+/)?.[0] || 0);
+    const validityDays = getValidityDays(daysText);
+    const basePriceILS = getShekelAmount(priceText);
+
+    const base = {
+      quantity: 1,
+      totalILS: basePriceILS,
+      perUnitILS: basePriceILS,
+      productId: baseLink?.dataset.id || null,
+      checkoutUrl: baseLink?.href || null
+    };
+
+    const deals = [...item.querySelectorAll(".buy-now-bundle-wrap")].map(row => {
+      const label = row.querySelector(".bundle-text")?.textContent.trim().replace(/\s+/g, " ") || "";
+      const link = row.querySelector("a.buy-now-bundle");
+      const checkoutUrl = link?.href || null;
+      const quantity = getQuantityFromBundle(label, checkoutUrl);
+      const totalILS = getShekelAmount(label);
+
+      return {
+        quantity,
+        totalILS,
+        perUnitILS: quantity ? round2(totalILS / quantity) : 0,
+        label,
+        productId: link?.dataset.id || null,
+        checkoutUrl
+      };
+    }).filter(d => d.quantity > 1 && d.totalILS > 0);
+
+    const validPrices = [base.perUnitILS, ...deals.map(d => d.perUnitILS)].filter(Boolean);
+
+    return {
+      simType,
+      dataGB,
+      validityDays,
+      base,
+      deals,
+      bestPerUnitILS: validPrices.length ? Math.min(...validPrices) : null
+    };
+  }).filter(p =>
+    p.dataGB > 0 &&
+    p.base.totalILS > 0 &&
+    p.validityDays !== null &&
+    p.validityDays <= maxValidityDays
+  );
+
+  if (options.dedupe) products = dedupePackages(products);
+  return products;
+}
+
+function dedupePackages(packages) {
+  const seen = new Set();
+  return (packages || []).filter(pkg => {
+    const key = [
+      pkg.base?.productId,
+      pkg.dataGB,
+      pkg.validityDays,
+      pkg.base?.totalILS,
+      pkg.base?.checkoutUrl
+    ].join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// Display filter for global/topup packages; topups pass maxValidityDays: 30.
+function getDisplayGlobalPackages(packages, simplified = true, options = {}) {
+  const maxValidityDays = options.maxValidityDays ?? 30;
+  let valid = (packages || []).filter(p => p.validityDays !== null && p.validityDays <= maxValidityDays);
+
+  if (simplified) {
+    valid = valid.filter(p => p.dataGB !== 1 && p.dataGB !== 7);
+  }
+
+  valid = valid.sort((a,b) => a.dataGB - b.dataGB || a.validityDays - b.validityDays || a.base.totalILS - b.base.totalILS);
+
+  if (simplified) {
+    const thirtyDay = valid.filter(p => p.validityDays === 30);
+    return thirtyDay.length ? thirtyDay : valid;
+  }
+
+  return valid;
+}
+
+function simTypeHebrew(simType) {
+  if (simType === "esim") return "eSIM";
+  if (simType === "physical_sim") return "סים פיזי";
+  if (simType === "topup") return "טופאפ";
+  return String(simType || "חבילה");
+}
+
+
+function shortIccid(iccid) {
+  const value = String(iccid || "");
+  return value.length > 8 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
+}
+
+
+
+function renderTopupProducts(result) {
+  const displayPackages = getDisplayGlobalPackages(result.packages || [], isSimplified("topup"), { maxValidityDays: 30 });
+  const copyTextValue = formatGlobalPlanListText(displayPackages);
+  const copyButton = copyTextValue
+    ? `<button class="global-copy-btn" onclick='copyText(${JSON.stringify(copyTextValue)})'>📋 העתק</button>`
+    : "";
+
+  if (!displayPackages.length) {
+    return `<div class="topup-products"><div class="global-empty">לא נמצאו חבילות טופאפ מתאימות ל‑ICCID והמדינות שנבחרו.</div></div>`;
+  }
+
+  // Fixed canonical slots: every catalog renders the same GB positions.
+  // A size the current SIM type doesn't offer renders as a RED row instead of
+  // disappearing — positions never move between V1/V2/V3.
+  const CANONICAL_TOPUP_GBS = [1, 2, 3, 5, 7, 10, 15, 20, 25, 50];
+  const simplifiedHidden = isSimplified("topup") ? new Set([1, 7]) : new Set();
+  const presentSizes = displayPackages.map(p => Number(p.dataGB));
+  const slots = Array.from(new Set([...CANONICAL_TOPUP_GBS, ...presentSizes]))
+    .filter(gb => !simplifiedHidden.has(gb))
+    .sort((a, b) => a - b);
+
+  const byGb = {};
+  [...displayPackages]
+    .sort((a, b) => (a.dataGB - b.dataGB) || (b.validityDays - a.validityDays))
+    .forEach(pkg => { (byGb[Number(pkg.dataGB)] ||= []).push(pkg); });
+
+  const rows = slots.map(gb => {
+    const pkgs = byGb[gb];
+    if (!pkgs || !pkgs.length) {
+      return `
+      <div class="topup-line is-missing" title="החבילה הזו לא קיימת בסוג הסים הנוכחי">
+        <span class="topup-line-text">${gb} גיגה – לא קיים</span>
+        <span class="tl-deal"></span>
+        <span class="tl-missing-pad"></span>
+      </div>
+    `;
+    }
+    return pkgs.map(pkg => {
+      // Row text is the base triple only — the deal lives in its fixed slot,
+      // so every row has identical geometry (muscle memory).
+      const line = `${pkg.dataGB} גיגה – ${pkg.validityDays} ימים – ₪${pkg.base.totalILS}`;
+      return `
+      <div class="topup-line">
+        <span class="topup-line-text">${escapeHtml(line)}</span>
+        ${renderTopupPurchaseLinks(pkg, result)}
+      </div>
+    `;
+    }).join("");
+  }).join("");
+
+  return `
+    <div class="topup-products">
+      <div class="topup-products-titlebar">
+        <div class="topup-products-title">חבילות טופאפ · 30 ימים</div>
+        ${copyButton}
+      </div>
+      <div class="topup-lines-grid">${rows}</div>
+    </div>
+  `;
+}
+
+
+
+
+
+
+
+// Override order URL creation so topup URLs are preserved instead of rewritten.
+
+
+// Override main render to place the topup scanner before the generated-order panel.
+
+
+
+/* =========================================================
+   TOP-UP SCANNER OVERRIDE · VERSION SELECTOR MODE
+   Workflow: choose SIM version, type customer ICCID, scan/cache catalog
+   using probe ICCIDs, then swap customer ICCID into checkout URLs.
+   ========================================================= */
+
+const TOPUP_VERSION_CATALOG_STORAGE_KEY = "simtlv_topup_catalog_by_version_v1_20260529";
+
+const TOPUP_VERSION_PROFILES = {
+  esim_v3: {
+    id: "esim_v3",
+    label: "V3 eSIM",
+    short: "V3 eSIM",
+    customerLabel: "ICCID של הלקוח · eSIM V3",
+    probeIccids: [
+      "8948010000077791457",
+      "8948010000063363337",
+      "8948010000027769918",
+      "8948010000052116480"
+    ],
+    note: "נסרק עם ICCID בדיקה של eSIM V3. בהזמנה, ה‑ICCID מוחלף ל‑ICCID שהקלדת."
+  },
+  psim_v2: {
+    id: "psim_v2",
+    label: "V2 pSIM",
+    short: "V2 pSIM",
+    customerLabel: "ICCID של הלקוח · pSIM V2",
+    probeIccids: [
+      "8948010000012743142",
+      "8948010000059957639",
+      "8948010000060024171",
+      "8937204017186230887"
+    ],
+    note: "נסרק עם ICCID בדיקה של pSIM V2. הקישור שומר את קוד האזור שהאתר מחזיר, ורק מחליף ICCID."
+  },
+  psim_v1: {
+    id: "psim_v1",
+    label: "V1 pSIM · אירופה בלבד",
+    short: "V1 pSIM",
+    customerLabel: "ICCID של הלקוח · pSIM V1",
+    probeIccids: [
+      "8943108169999022608",
+      "8943108166001515249"
+    ],
+    note: "V1 מוגבל בכוונה לרשימת אירופה שהגדרת. אין סריקה/הזמנה ליעדים מחוץ לרשימה הזו."
+  }
+};
+
+const TOPUP_V1_EUROPE_ALLOWED_ISOS = new Set([
+  "AT", "EE", "IT", "IS", "IE", "GB", "UK", "BG", "BE", "DE", "DK", "HU", "NL", "TR", "GR",
+  "LU", "LV", "LT", "LI", "MT", "SI", "SK", "ES", "PL", "PT", "FI", "CY", "HR", "RO",
+  "SE", "CH", "CZ", "FR"
+]);
+
+const TOPUP_V1_EUROPE_ALLOWED_HE = new Set([
+  "אוסטריה", "אסטוניה", "איטליה", "איסלנד", "אירלנד", "אנגליה", "בריטניה", "בולגריה", "בלגיה",
+  "גרמניה", "דנמרק", "הונגריה", "הולנד", "טורקיה", "יוון", "לוקסמבורג", "לטביה", "ליטא",
+  "ליכטנשטיין", "מלטה", "סלובניה", "סלובקיה", "ספרד", "פולין", "פורטוגל", "פינלנד",
+  "קפריסין", "קרואטיה", "רומניה", "שוודיה", "שווייץ", "שוויץ", "צ'כיה", "צ׳כיה", "צרפת"
+]);
+
+const TOPUP_V1_EUROPE_ALLOWED_TEXT = "אוסטריה, אסטוניה, איטליה, איסלנד, אירלנד, אנגליה/בריטניה, בולגריה, בלגיה, גרמניה, דנמרק, הונגריה, הולנד, טורקיה, יוון, לוקסמבורג, לטביה, ליטא, ליכטנשטיין, מלטה, סלובניה, סלובקיה, ספרד, פולין, פורטוגל, פינלנד, קפריסין, קרואטיה, רומניה, שוודיה, שוויץ, צ'כיה, צרפת";
+
+// Replace the old inventory behavior. We keep the old topupState object but use it as a compact version/catalog state.
+
+
+
+
+
+// Compatibility wrapper for old inline handlers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================================
+   TOP-UP FINAL OVERRIDE · AUTO PRELOAD + STATIC CATALOG MODE
+   Requested workflow:
+   1) V3 eSIM: no topup scan. Use the already-known manual website prices.
+   2) V2 pSIM: scan once per price zone, automatically on startup.
+   3) V1 pSIM: scan Germany only, automatically on startup, and restrict to Europe.
+   ========================================================= */
+
+const TOPUP_AUTO_CATALOG_STORAGE_KEY = "simtlv_topup_auto_catalog_v4_zone_v2_germany_v1_20260529";
+const TOPUP_AUTO_STATE_STORAGE_KEY = "simtlv_topup_auto_state_v4_20260529";
+const TOPUP_V1_GERMANY_PROBE_ISO = "DE";
+const TOPUP_V2_ZONE_PRELOAD_CONCURRENCY = 5;
+
+function ensureAutoTopupState() {
+  loadPersistedTopupCache();
+  if (!topupState.autoModeReady) {
+    topupState.autoModeReady = true;
+    topupState.simVersion = localStorage.getItem("simtlv_topup_selected_version_20260529") || topupState.simVersion || "esim_v3";
+    topupState.customerIccid = normalizeIccid(localStorage.getItem("simtlv_topup_customer_iccid_20260529") || topupState.customerIccid || topupState.iccid || "");
+    topupState.iccid = topupState.customerIccid;
+    topupState.batchMode = topupState.batchMode || false;
+    topupState.batchRaw = topupState.batchRaw || "";
+    topupState.batchIccids = topupState.batchIccids || [];
+    topupState.catalogCache = {};
+    topupState.autoPreloadStarted = false;
+    topupState.autoPreloading = false;
+    topupState.autoPreloadDone = false;
+    topupState.autoPreloadMessage = "";
+    topupState.autoPreloadErrors = [];
+    topupState.autoEnsureRunning = false;
+
+    try {
+      const saved = localStorage.getItem(TOPUP_AUTO_CATALOG_STORAGE_KEY) || localStorage.getItem(TOPUP_VERSION_CATALOG_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") topupState.catalogCache = parsed;
+      }
+    } catch (e) {
+      console.warn("Could not load automatic topup catalog cache", e);
+    }
+  }
+}
+
+function persistTopupCatalogCache() {
+  try {
+    localStorage.setItem(TOPUP_AUTO_CATALOG_STORAGE_KEY, JSON.stringify(topupState.catalogCache || {}));
+  } catch (e) {
+    console.warn("Could not save automatic topup catalog cache", e);
+  }
+}
+
+function getTopupProfile() {
+  ensureAutoTopupState();
+  return TOPUP_VERSION_PROFILES[topupState.simVersion] || TOPUP_VERSION_PROFILES.esim_v3;
+}
+
+function setTopupVersion(version) {
+  ensureAutoTopupState();
+  topupState.simVersion = TOPUP_VERSION_PROFILES[version] ? version : "esim_v3";
+  topupState.catalogResult = getCurrentTopupCatalog();
+  topupState.result = topupState.catalogResult;
+  topupState.error = "";
+  try { localStorage.setItem("simtlv_topup_selected_version_20260529", topupState.simVersion); } catch (e) {}
+  renderAll();
+}
+
+// ---- ICCID → SIM-type autodetection ----------------------------------------
+// Prefix table derived from real card samples. NOTE: 12 digits is NOT always
+// enough — 894801000001x opens both V3 (…14…) and V2 (…12…); the 8948010-00000
+// family only disambiguates at digit 13, so those entries are 13 digits long.
+// Longest matching prefix wins. Extend this table as new ranges appear.
+const ICCID_TYPE_PREFIXES = [
+  { prefix: "894310",        type: "psim_v1" }, // all V1 samples
+  { prefix: "893720",        type: "psim_v2" }, // e.g. 8937204017…
+  { prefix: "8948010010",    type: "esim_v3" }, // e.g. 8948010010054…
+  { prefix: "8948010000012", type: "psim_v2" },
+  { prefix: "8948010000059", type: "psim_v2" },
+  { prefix: "8948010000060", type: "psim_v2" },
+  { prefix: "8948010000014", type: "esim_v3" },
+  { prefix: "8948010000027", type: "esim_v3" },
+  { prefix: "8948010000038", type: "esim_v3" },
+  { prefix: "8948010000052", type: "esim_v3" },
+  { prefix: "8948010000063", type: "esim_v3" },
+  { prefix: "8948010000077", type: "esim_v3" },
+  { prefix: "8948010000095", type: "esim_v3" },
+];
+
+function detectSimTypeFromIccid(iccid) {
+  const ic = normalizeIccid(iccid);
+  if (ic.length < 13) return null;
+  let best = null;
+  for (const rule of ICCID_TYPE_PREFIXES) {
+    if (ic.startsWith(rule.prefix) && (!best || rule.prefix.length > best.prefix.length)) best = rule;
+  }
+  return best ? best.type : null;
+}
+
+function autoDetectAndSwitchSimType(iccid) {
+  const ic = normalizeIccid(iccid);
+  if (ic.length < 18) return; // wait for a full ICCID — no flicker mid-typing
+  const type = detectSimTypeFromIccid(ic);
+  if (!type) return;
+  ensureAutoTopupState();
+  if (topupState.simVersion === type) return;
+  setTopupVersion(type);
+  showCopyToast(`🔍 זוהה ${TOPUP_VERSION_PROFILES[type].label} — הוחלף אוטומטית`);
+}
+
+function setTopupCustomerIccid(value, rerender = false) {
+  ensureAutoTopupState();
+  const iccid = normalizeIccid(value);
+  topupState.customerIccid = iccid;
+  topupState.iccid = iccid;
+  const input = document.getElementById("topupIccid");
+  if (input && input.value !== iccid) input.value = iccid;
+  try { localStorage.setItem("simtlv_topup_customer_iccid_20260529", iccid); } catch (e) {}
+  autoDetectAndSwitchSimType(iccid);
+  if (rerender) renderAll();
+}
+
+// ---- Quote template ---------------------------------------------------------
+// Editable message template with placeholders; persisted per browser.
+const QUOTE_TEMPLATE_KEY = "simtlv_quote_template_v1";
+const DEFAULT_QUOTE_TEMPLATE =
+`מחירון גלישה — {country} ✈️
+
+📱 eSIM · 30 ימים:
+{esim_plans}
+
+💳 סים פיזי · 30 ימים:
+{psim_plans}`;
+let quoteTemplate = DEFAULT_QUOTE_TEMPLATE;
+try {
+  const savedTpl = localStorage.getItem(QUOTE_TEMPLATE_KEY);
+  if (savedTpl && savedTpl.trim()) quoteTemplate = savedTpl;
+} catch (e) {}
+
+function buildQuoteText() {
+  if (!selected.length) return null;
+
+  const names = selected.map(c => c.name.he).join(", ");
+
+  const esimZone = Math.max(...selected.map(c => c.esimZone ?? c.zone));
+  const esimCountry = selected.find(c => (c.esimZone ?? c.zone) === esimZone);
+  const esimPlans = esimCountry ? [...esimCountry.plans.esim].sort((a,b)=>a.dataGB-b.dataGB) : [];
+  const esimLines = esimPlans.map(p => `${p.dataGB} גיגה – 30 ימים – ₪${Math.round(p.priceUSD * USD_TO_ILS)}`).join("\n");
+
+  const physZone = Math.max(...selected.map(c => c.physicalZone ?? c.zone));
+  const physCountry = selected.find(c => (c.physicalZone ?? c.zone) === physZone);
+  const physPlans = physCountry ? [...physCountry.plans.physical].sort((a,b)=>a.dataGB-b.dataGB) : [];
+  const physLines = physPlans.map(p => `${p.dataGB} גיגה – 30 ימים – ₪${p.priceILS}`).join("\n");
+
+  if (!esimLines && !physLines) return null;
+
+  return quoteTemplate
+    .replaceAll("{country}", names)
+    .replaceAll("{esim_plans}", esimLines || "—")
+    .replaceAll("{psim_plans}", physLines || "—")
+    .replaceAll("{date}", new Date().toLocaleDateString("he-IL"));
+}
+
+function copyQuote() {
+  if (!selected.length) { alert("בחר מדינה קודם"); return; }
+  const text = buildQuoteText();
+  if (!text) { alert("אין חבילות זמינות ליעד הזה"); return; }
+  copyText(text);
+}
+
+function openQuoteEditor() {
+  const modal = document.getElementById("quoteModal");
+  const ta = document.getElementById("quoteTemplateArea");
+  if (!modal || !ta) return;
+  ta.value = quoteTemplate;
+  modal.classList.add("open");
+}
+
+function closeQuoteEditor() {
+  const modal = document.getElementById("quoteModal");
+  if (modal) modal.classList.remove("open");
+}
+
+function saveQuoteTemplate() {
+  const ta = document.getElementById("quoteTemplateArea");
+  if (!ta) return;
+  quoteTemplate = ta.value.trim() ? ta.value : DEFAULT_QUOTE_TEMPLATE;
+  try { localStorage.setItem(QUOTE_TEMPLATE_KEY, quoteTemplate); } catch (e) {}
+  closeQuoteEditor();
+  showCopyToast("✓ התבנית נשמרה");
+}
+
+function resetQuoteTemplate() {
+  quoteTemplate = DEFAULT_QUOTE_TEMPLATE;
+  const ta = document.getElementById("quoteTemplateArea");
+  if (ta) ta.value = quoteTemplate;
+  try { localStorage.setItem(QUOTE_TEMPLATE_KEY, quoteTemplate); } catch (e) {}
+}
+
+function toggleTopupBatchMode() {
+  ensureAutoTopupState();
+  topupState.batchMode = !topupState.batchMode;
+  renderAll();
+}
+
+function setTopupBatchIccids(value) {
+  ensureAutoTopupState();
+  topupState.batchRaw = String(value || "");
+  topupState.batchIccids = topupState.batchRaw
+    .split(/[\n,;]+/)
+    .map(s => normalizeIccid(s))
+    .filter(ic => ic.length >= 18);
+  // Live-update the counter on the toggle without a focus-stealing re-render.
+  const btn = document.querySelector(".topup-batch-toggle");
+  if (btn) btn.textContent = `📚 מרובה${topupState.batchIccids.length ? ` · ${topupState.batchIccids.length}` : ""}`;
+  if (topupState.batchIccids.length) autoDetectAndSwitchSimType(topupState.batchIccids[0]);
+}
+
+function setTopupIccid(value, rerender = false) {
+  setTopupCustomerIccid(value, rerender);
+}
+
+function getZoneRepresentative(zone) {
+  const z = Number(zone);
+  return data.find(c => Number(c.zone) === z) || null;
+}
+
+function getAllZoneRepresentatives() {
+  const byZone = new Map();
+  data.forEach(country => {
+    const z = Number(country.zone);
+    if (!byZone.has(z)) byZone.set(z, country);
+  });
+  return [...byZone.entries()]
+    .sort((a,b) => Number(a[0]) - Number(b[0]))
+    .map(([zone, country]) => ({ zone: Number(zone), country }));
+}
+
+function getSelectedTopupCountries() {
+  // Match base-plan behavior: topups operate on the active (highest) zone.
+  // Without this, a mixed-zone selection (e.g. US zone 1 + JP zone 2) would
+  // put off-zone ISOs into fly_countries while pricing against the top zone.
+  const zone = getHighestZone();
+  if (zone === null) return [];
+  return selected.filter(c => c.zone === zone);
+}
+
+function getSelectedTopupZone() {
+  return getHighestZone();
+}
+
+function getSelectedTopupActiveCountries() {
+  const zone = getSelectedTopupZone();
+  if (zone === null) return [];
+  return selected.filter(c => Number(c.zone) === Number(zone));
+}
+
+function getSelectedTopupCountryNamesForUrl() {
+  return getSelectedTopupCountries()
+    .map(c => c.name?.he || c.name?.en || c.iso)
+    .filter(Boolean)
+    .join("|");
+}
+
+function getTopupCatalogKey(countries = getTopupCountries(), simVersion = getTopupProfile().id) {
+  const profileId = simVersion || "esim_v3";
+  if (profileId === "esim_v3") {
+    const zone = getSelectedTopupZone();
+    return zone === null ? "esim_v3|none" : `esim_v3|zone:${zone}`;
+  }
+  if (profileId === "psim_v2") {
+    const zone = getSelectedTopupZone();
+    return zone === null ? "psim_v2|none" : `psim_v2|zone:${zone}`;
+  }
+  if (profileId === "psim_v1") return "psim_v1|europe:DE";
+  return `${profileId}|${getTopupCountryKey(countries)}`;
+}
+
+function getTopupCatalogKeyForZone(profileId, zone) {
+  if (profileId === "psim_v2") return `psim_v2|zone:${Number(zone)}`;
+  if (profileId === "esim_v3") return `esim_v3|zone:${Number(zone)}`;
+  if (profileId === "psim_v1") return "psim_v1|europe:DE";
+  return `${profileId}|zone:${Number(zone)}`;
+}
+
+function isV1CountryAllowed(country) {
+  const iso = String(country?.iso || "").toUpperCase();
+  const he = String(country?.name?.he || "").trim();
+  return TOPUP_V1_EUROPE_ALLOWED_ISOS.has(iso) || TOPUP_V1_EUROPE_ALLOWED_HE.has(he);
+}
+
+function getV1DisallowedCountries(countries = getTopupCountries()) {
+  return (countries || []).filter(c => !isV1CountryAllowed(c));
+}
+
+function validateTopupSelectionForProfile(profile = getTopupProfile(), countries = getTopupCountries()) {
+  if (!countries.length) return "בחר מדינה אחת לפחות.";
+  if (profile.id === "psim_v1") {
+    const bad = getV1DisallowedCountries(countries);
+    if (bad.length) {
+      const names = bad.map(c => c.name?.he || c.iso).join(", ");
+      return `V1 pSIM מוגבל לאירופה בלבד. היעדים הבאים חסומים ל‑V1: ${names}`;
+    }
+  }
+  return "";
+}
+
+function firstGlobalCacheForZone(zone) {
+  const rep = data.find(c => Number(c.zone) === Number(zone) && globalCache[c.iso]);
+  return rep ? globalCache[rep.iso] : null;
+}
+
+function getGlobalCacheRepresentativeForSelected() {
+  const active = getSelectedTopupActiveCountries();
+  return active.find(c => globalCache[c.iso]) || data.find(c => Number(c.zone) === Number(getSelectedTopupZone()) && globalCache[c.iso]) || null;
+}
+
+function getCheckoutUrlInfo(url) {
+  const out = { flyCountries: "", productZone: "", physicalSimType: "", countryNameInRegion: "" };
+  if (!url) return out;
+  try {
+    const u = new URL(url);
+    out.flyCountries = u.searchParams.get("fly_countries") || "";
+    out.productZone = u.searchParams.get("product_zone") || "";
+    out.physicalSimType = u.searchParams.get("physical_sim_type") || "";
+    out.countryNameInRegion = u.searchParams.get("country_name_in_region") || "";
+  } catch (e) {}
+  return out;
+}
+
+function clonePackage(pkg) {
+  return JSON.parse(JSON.stringify(pkg));
+}
+
+function rewritePackageUrls(pkg, rewriter) {
+  const cloned = clonePackage(pkg);
+  if (cloned.base?.checkoutUrl) cloned.base.checkoutUrl = rewriter(cloned.base.checkoutUrl, cloned.base.quantity || 1);
+  if (Array.isArray(cloned.deals)) {
+    cloned.deals = cloned.deals.map(d => ({ ...d, checkoutUrl: rewriter(d.checkoutUrl, d.quantity || 1) }));
+  }
+  return cloned;
+}
+
+function rewriteEsimV3TopupUrlFromManual(url, countries = getSelectedTopupCountries(), zone = getSelectedTopupZone(), quantity = 1) {
+  if (!url) return url;
+  const isos = (countries || []).map(c => c.iso).filter(Boolean).sort();
+  try {
+    const u = new URL(url);
+    if (isos.length) u.searchParams.set("fly_countries", isos.join("|"));
+    if (zone !== null && zone !== undefined) u.searchParams.set("product_zone", String(Number(zone)));
+    u.searchParams.delete("physical_sim_type");
+    u.searchParams.delete("country_name_in_region");
+    u.searchParams.delete("quantity");
+    u.searchParams.delete("empty_cart");
+    u.searchParams.set("ref", "R41IMUNU");
+    return u.toString().replace(/%7C/gi, "|");
+  } catch (e) {
+    return String(url);
+  }
+}
+
+function rewritePhysicalTopupUrlForSelected(url, profileId, countries = getSelectedTopupCountries()) {
+  if (!url) return url;
+  const countryNames = getSelectedTopupCountryNamesForUrl();
+  try {
+    const u = new URL(url);
+    if (countryNames) u.searchParams.set("country_name_in_region", countryNames);
+    // fly_countries must reflect the customer's selection — NOT the zone-probe
+    // representative country (e.g. UZ) used to fetch a zone-wide V2 catalog.
+    if (profileId === "psim_v1") {
+      u.searchParams.set("fly_countries", "REUP");
+    } else {
+      const isos = (countries || []).map(c => c.iso).filter(Boolean);
+      if (isos.length) u.searchParams.set("fly_countries", isos.slice().sort().join("|"));
+    }
+    u.searchParams.delete("quantity");
+    u.searchParams.delete("empty_cart");
+    u.searchParams.set("ref", "R41IMUNU");
+    return u.toString().replace(/%7C/gi, "|");
+  } catch (e) {
+    return String(url);
+  }
+}
+
+function materializeTopupCatalogForSelected(catalog, profile = getTopupProfile()) {
+  if (!catalog) return null;
+  const countries = getSelectedTopupCountries();
+  const zone = getSelectedTopupZone();
+  const materialized = JSON.parse(JSON.stringify(catalog));
+  materialized.requestedCountries = countries.map(c => ({ iso: c.iso, he: c.name.he, en: c.name.en, zone: c.zone }));
+  materialized.profileId = profile.id;
+  materialized.profileLabel = profile.label;
+  materialized.kind = profile.label;
+  materialized.kindShort = profile.short;
+  materialized.customerIccid = topupState.customerIccid || "";
+
+  if (profile.id === "esim_v3") {
+    materialized.zone = zone;
+    materialized.packages = (materialized.packages || []).map(pkg =>
+      rewritePackageUrls(pkg, rawUrl => rewriteEsimV3TopupUrlFromManual(rawUrl, countries, zone))
+    );
+  } else {
+    materialized.packages = (materialized.packages || []).map(pkg =>
+      rewritePackageUrls(pkg, rawUrl => rewritePhysicalTopupUrlForSelected(rawUrl, profile.id, countries))
+    );
+  }
+
+  materialized.checkoutInfo = getCheckoutUrlInfo(materialized.packages?.[0]?.base?.checkoutUrl || "");
+  return materialized;
+}
+
+function buildEsimV3CatalogFromManualPrices() {
+  ensureAutoTopupState();
+  const zone = getSelectedTopupZone();
+  const countries = getSelectedTopupCountries();
+  if (zone === null || !countries.length) return null;
+
+  const rep = getGlobalCacheRepresentativeForSelected();
+  const cached = rep ? globalCache[rep.iso] : firstGlobalCacheForZone(zone);
+  if (!cached || !Array.isArray(cached.esim) || !cached.esim.length) {
+    const zoneRep = getZoneRepresentative(zone);
+    if (zoneRep) ensureGlobalCountry(zoneRep);
+    countries.forEach(c => ensureGlobalCountry(c));
+    return null;
+  }
+
+  const packages = (cached.esim || []).map(pkg => rewritePackageUrls(pkg, rawUrl => rewriteEsimV3TopupUrlFromManual(rawUrl, countries, zone)));
+  const firstUrl = packages[0]?.base?.checkoutUrl || "";
+  return {
+    catalogKey: getTopupCatalogKey(countries, "esim_v3"),
+    profileId: "esim_v3",
+    profileLabel: TOPUP_VERSION_PROFILES.esim_v3.label,
+    kind: TOPUP_VERSION_PROFILES.esim_v3.label,
+    kindShort: TOPUP_VERSION_PROFILES.esim_v3.short,
+    source: "manual_global_esim_prices_no_topup_scan",
+    probeIccid: "manual-prices",
+    iccid: "",
+    customerIccid: topupState.customerIccid || "",
+    requestedCountries: countries.map(c => ({ iso: c.iso, he: c.name.he, en: c.name.en, zone: c.zone })),
+    zone,
+    searchPhysical: 0,
+    simTypeText: "eSIM V3",
+    regionCode: countries.map(c => c.iso).sort().join("|"),
+    regionName: "",
+    checkoutInfo: getCheckoutUrlInfo(firstUrl),
+    packages
+  };
+}
+
+async function fetchPhysicalCatalogByProbe(profile, countries, catalogKey) {
+  const errors = [];
+  for (const probeIccid of profile.probeIccids) {
+    try {
+      const result = await fetchTopupPackages(probeIccid, countries);
+      if (result && Array.isArray(result.packages) && result.packages.length) {
+        result.catalogKey = catalogKey;
+        result.profileId = profile.id;
+        result.profileLabel = profile.label;
+        result.probeIccid = probeIccid;
+        result.iccid = probeIccid;
+        result.customerIccid = topupState.customerIccid || "";
+        result.kindShort = profile.short;
+        result.kind = profile.label;
+        return materializeTopupCatalogForSelected(result, profile) || result;
+      }
+      errors.push(`${shortIccid(probeIccid)}: empty catalog`);
+    } catch (err) {
+      errors.push(`${shortIccid(probeIccid)}: ${String(err.message || err)}`);
+    }
+  }
+  throw new Error(`לא הצלחתי לטעון קטלוג ${profile.label}. ${errors.join(" · ")}`);
+}
+
+function getV1GermanyCountry() {
+  return data.find(c => String(c.iso).toUpperCase() === TOPUP_V1_GERMANY_PROBE_ISO) || {
+    iso: "DE",
+    name: { he: "גרמניה", en: "Germany" },
+    zone: 1,
+    plans: { esim: [], physical: [] }
+  };
+}
+
+async function fetchTopupCatalogByProbe(profile, countries) {
+  ensureAutoTopupState();
+
+  if (profile.id === "esim_v3") {
+    const catalog = buildEsimV3CatalogFromManualPrices();
+    if (catalog) return catalog;
+    throw new Error("מחירי eSIM V3 עדיין נטענים מהאתר הידני. זה לא סריקת טופאפ; חכה שהטעינה האוטומטית תסתיים או בחר מדינה שוב.");
+  }
+
+  if (profile.id === "psim_v2") {
+    const zone = getSelectedTopupZone();
+    const rep = getZoneRepresentative(zone);
+    if (!rep) throw new Error(`לא נמצאה מדינת נציג לאזור ${zone}`);
+    return fetchPhysicalCatalogByProbe(profile, [rep], getTopupCatalogKeyForZone("psim_v2", zone));
+  }
+
+  if (profile.id === "psim_v1") {
+    const validation = validateTopupSelectionForProfile(profile, getSelectedTopupCountries());
+    if (validation) throw new Error(validation);
+    return fetchPhysicalCatalogByProbe(profile, [getV1GermanyCountry()], "psim_v1|europe:DE");
+  }
+
+  return fetchPhysicalCatalogByProbe(profile, countries, getTopupCatalogKey(countries, profile.id));
+}
+
+function getCurrentTopupCatalog() {
+  ensureAutoTopupState();
+  const profile = getTopupProfile();
+  if (profile.id === "esim_v3") return buildEsimV3CatalogFromManualPrices();
+
+  const validation = validateTopupSelectionForProfile(profile, getSelectedTopupCountries());
+  if (validation) return null;
+
+  const key = getTopupCatalogKey(getSelectedTopupCountries(), profile.id);
+  const cached = topupState.catalogCache?.[key] || null;
+  return cached ? materializeTopupCatalogForSelected(cached, profile) : null;
+}
+
+
+function isCatalogCachedForProfile(profile, countries = getSelectedTopupCountries()) {
+  if (!countries.length) return false;
+  if (profile.id === "esim_v3") return !!buildEsimV3CatalogFromManualPrices();
+  if (profile.id === "psim_v1" && getV1DisallowedCountries(countries).length) return false;
+  return !!topupState.catalogCache?.[getTopupCatalogKey(countries, profile.id)];
+}
+
+function getTopupPreloadStats(countries = getTopupCountries()) {
+  ensureAutoTopupState();
+  const profiles = Object.values(TOPUP_VERSION_PROFILES).filter(profile => {
+    if (profile.id !== "psim_v1") return true;
+    return !getV1DisallowedCountries(countries).length;
+  });
+  const total = profiles.length;
+  const cached = profiles.filter(profile => isCatalogCachedForProfile(profile, countries)).length;
+  return { total, cached, missing: Math.max(0, total - cached) };
+}
+
+async function scanTopupCatalogForSelected(forceRefresh = false) {
+  ensureAutoTopupState();
+  const countries = getSelectedTopupCountries();
+  const profile = getTopupProfile();
+  const validation = validateTopupSelectionForProfile(profile, countries);
+  if (validation) {
+    topupState.error = validation;
+    topupState.catalogResult = null;
+    renderAll();
+    return;
+  }
+
+  if (profile.id === "esim_v3") {
+    const result = buildEsimV3CatalogFromManualPrices();
+    topupState.catalogResult = result;
+    topupState.result = result;
+    topupState.error = result ? "" : "מחירי eSIM V3 עדיין נטענים אוטומטית מהאתר הידני.";
+    renderAll();
+    return;
+  }
+
+  const key = getTopupCatalogKey(countries, profile.id);
+  if (!forceRefresh && topupState.catalogCache?.[key]) {
+    topupState.catalogResult = getCurrentTopupCatalog();
+    topupState.result = topupState.catalogResult;
+    topupState.error = "";
+    renderAll();
+    return;
+  }
+
+  topupState.loading = true;
+  topupState.error = "";
+  topupState.catalogResult = null;
+  renderAll();
+
+  try {
+    const result = await fetchTopupCatalogByProbe(profile, countries);
+    topupState.catalogCache[key] = JSON.parse(JSON.stringify(result));
+    topupState.catalogResult = getCurrentTopupCatalog();
+    topupState.result = topupState.catalogResult;
+    persistTopupCatalogCache();
+  } catch (err) {
+    topupState.error = String(err.message || err);
+  } finally {
+    topupState.loading = false;
+    renderAll();
+  }
+}
+
+
+async function preloadTopupsForSelected(forceRefresh = false) {
+  ensureAutoTopupState();
+  const countries = getSelectedTopupCountries();
+  if (!countries.length) {
+    topupState.error = "בחר מדינה אחת לפחות לפני טעינת קטלוגים.";
+    renderAll();
+    return;
+  }
+
+  const jobs = [];
+  const zone = getSelectedTopupZone();
+  const v2Key = getTopupCatalogKeyForZone("psim_v2", zone);
+  if (forceRefresh || !topupState.catalogCache?.[v2Key]) {
+    const rep = getZoneRepresentative(zone);
+    if (rep) jobs.push({ profile: TOPUP_VERSION_PROFILES.psim_v2, countries: [rep], key: v2Key, label: `V2 zone ${zone}` });
+  }
+
+  const v1Key = "psim_v1|europe:DE";
+  if (!getV1DisallowedCountries(countries).length && (forceRefresh || !topupState.catalogCache?.[v1Key])) {
+    jobs.push({ profile: TOPUP_VERSION_PROFILES.psim_v1, countries: [getV1GermanyCountry()], key: v1Key, label: "V1 Germany/Europe" });
+  }
+
+  // V3 eSIM intentionally has no topup scan. It is derived from manual website eSIM prices.
+  if (!jobs.length) {
+    topupState.preloadMessage = "";
+    topupState.preloading = false;
+    topupState.error = "";
+    topupState.catalogResult = getCurrentTopupCatalog();
+    topupState.result = topupState.catalogResult;
+    renderAll();
+    return;
+  }
+
+  topupState.preloading = true;
+  topupState.preloadDone = 0;
+  topupState.preloadTotal = jobs.length;
+  topupState.preloadErrors = 0;
+  topupState.preloadErrorList = [];
+  topupState.preloadMessage = `טוען אוטומטית ${jobs.length} קטלוגים חסרים…`;
+  topupState.error = "";
+  renderAll();
+
+  await mapWithConcurrency(jobs, 3, async job => {
+    try {
+      const result = await fetchPhysicalCatalogByProbe(job.profile, job.countries, job.key);
+      topupState.catalogCache[job.key] = JSON.parse(JSON.stringify(result));
+    } catch (err) {
+      topupState.preloadErrors++;
+      topupState.preloadErrorList.push(`${job.label}: ${String(err.message || err)}`);
+    } finally {
+      topupState.preloadDone++;
+      topupState.preloadMessage = `טוען קטלוגים: ${topupState.preloadDone}/${topupState.preloadTotal}`;
+      persistTopupCatalogCache();
+      renderAll();
+    }
+  });
+
+  topupState.preloading = false;
+  topupState.preloadMessage = `טעינה אוטומטית ליעד הסתיימה${topupState.preloadErrors ? ` · שגיאות: ${topupState.preloadErrors}` : ""}`;
+  topupState.catalogResult = getCurrentTopupCatalog();
+  topupState.result = topupState.catalogResult;
+  renderAll();
+}
+
+async function preloadAllV2Zones(forceRefresh = false) {
+  ensureAutoTopupState();
+  const reps = getAllZoneRepresentatives();
+  const jobs = reps
+    .map(rep => ({ ...rep, key: getTopupCatalogKeyForZone("psim_v2", rep.zone) }))
+    .filter(job => forceRefresh || !topupState.catalogCache?.[job.key]);
+
+  if (!jobs.length) return { done: reps.length, errors: 0 };
+
+  let done = 0;
+  let errors = 0;
+  await mapWithConcurrency(jobs, TOPUP_V2_ZONE_PRELOAD_CONCURRENCY, async job => {
+    try {
+      const result = await fetchPhysicalCatalogByProbe(TOPUP_VERSION_PROFILES.psim_v2, [job.country], job.key);
+      topupState.catalogCache[job.key] = JSON.parse(JSON.stringify(result));
+    } catch (err) {
+      errors++;
+      topupState.autoPreloadErrors.push(`V2 אזור ${job.zone}: ${String(err.message || err)}`);
+    } finally {
+      done++;
+      topupState.autoPreloadMessage = `טעינה אוטומטית: V2 לפי אזורים ${done}/${jobs.length}`;
+      persistTopupCatalogCache();
+      renderAll();
+    }
+  });
+  return { done, errors };
+}
+
+async function preloadV1Germany(forceRefresh = false) {
+  ensureAutoTopupState();
+  const key = "psim_v1|europe:DE";
+  if (!forceRefresh && topupState.catalogCache?.[key]) return { done: 1, errors: 0 };
+  try {
+    const result = await fetchPhysicalCatalogByProbe(TOPUP_VERSION_PROFILES.psim_v1, [getV1GermanyCountry()], key);
+    topupState.catalogCache[key] = JSON.parse(JSON.stringify(result));
+    persistTopupCatalogCache();
+    return { done: 1, errors: 0 };
+  } catch (err) {
+    topupState.autoPreloadErrors.push(`V1 Germany: ${String(err.message || err)}`);
+    return { done: 0, errors: 1 };
+  }
+}
+
+async function autostartTopupCatalogPreload(forceRefresh = false) {
+  ensureAutoTopupState();
+  if (!data.length || topupState.autoPreloading) return;
+  if (topupState.autoPreloadStarted && !forceRefresh) return;
+
+  topupState.autoPreloadStarted = true;
+  topupState.autoPreloading = true;
+  topupState.autoPreloadDone = false;
+  topupState.autoPreloadErrors = [];
+  topupState.autoPreloadMessage = "טוען קטלוג טופאפ…";
+  setExportStatus(topupState.autoPreloadMessage);
+  renderAll();
+
+  // V3 eSIM: use existing manual website package scanner by zone. No topup scan.
+  // This preloads the normal website catalog once per zone, then V3 topup URLs are built from it.
+  const globalPromise = startGlobalPreloadAll(false).catch(err => {
+    topupState.autoPreloadErrors.push(`V3/manual: ${String(err.message || err)}`);
+  });
+
+  const v2Promise = preloadAllV2Zones(forceRefresh);
+  const v1Promise = preloadV1Germany(forceRefresh);
+
+  await Promise.allSettled([globalPromise, v2Promise, v1Promise]);
+
+  topupState.autoPreloading = false;
+  topupState.autoPreloadDone = true;
+  const zoneTotal = getAllZoneRepresentatives().length;
+  const v2Cached = getAllZoneRepresentatives().filter(rep => !!topupState.catalogCache?.[getTopupCatalogKeyForZone("psim_v2", rep.zone)]).length;
+  const v1Cached = !!topupState.catalogCache?.["psim_v1|europe:DE"];
+  const globalZones = getLoadedZoneCount();
+  topupState.autoPreloadMessage = `מוכן: V3 מחירי אתר ${globalZones}/${getTotalZoneCount()} אזורים, V2 ${v2Cached}/${zoneTotal} אזורים, V1 Germany ${v1Cached ? "טעון" : "חסר"}${topupState.autoPreloadErrors.length ? ` · שגיאות: ${topupState.autoPreloadErrors.length}` : ""}`;
+  setExportStatus(topupState.autoPreloadMessage);
+  persistTopupCatalogCache();
+  renderAll();
+}
+
+function scheduleAutoEnsureTopupForSelection() {
+  ensureAutoTopupState();
+  if (!selected.length || topupState.autoEnsureRunning) return;
+  const profile = getTopupProfile();
+  if (profile.id === "esim_v3") {
+    const zone = getSelectedTopupZone();
+    if (zone !== null && !firstGlobalCacheForZone(zone)) {
+      const rep = getZoneRepresentative(zone);
+      if (rep) ensureGlobalCountry(rep);
+    }
+    return;
+  }
+  if (!getCurrentTopupCatalog()) {
+    topupState.autoEnsureRunning = true;
+    setTimeout(() => {
+      preloadTopupsForSelected(false).finally(() => { topupState.autoEnsureRunning = false; });
+    }, 20);
+  }
+}
+
+function buildTopupCheckoutUrl(url, quantityOverride = 1, forceEmptyCart = cartSettings.emptyCart, customerIccidOverride = null) {
+  if (!url) return url;
+  const qty = parseInt(quantityOverride || 1, 10);
+  const customerIccid = normalizeIccid(customerIccidOverride ?? topupState.customerIccid ?? topupState.iccid ?? "");
+  const profile = getTopupProfile();
+
+  try {
+    const u = new URL(url);
+    u.searchParams.set("ref", "R41IMUNU");
+    if (customerIccid) u.searchParams.set("your_iccid", customerIccid);
+
+    if (profile.id === "esim_v3") {
+      const countries = getSelectedTopupCountries();
+      const zone = getSelectedTopupZone();
+      if (countries.length) u.searchParams.set("fly_countries", countries.map(c => c.iso).sort().join("|"));
+      if (zone !== null) u.searchParams.set("product_zone", String(Number(zone)));
+      u.searchParams.delete("country_name_in_region");
+      u.searchParams.delete("physical_sim_type");
+    } else {
+      const names = getSelectedTopupCountryNamesForUrl();
+      if (names) u.searchParams.set("country_name_in_region", names);
+      // V1 pSIM topups always use the REUP region code, never a literal country.
+      if (profile.id === "psim_v1") {
+        u.searchParams.set("fly_countries", "REUP");
+      }
+      // (V2 fly_countries is already set to the selected ISOs during URL rewrite.)
+    }
+
+    if (forceEmptyCart) u.searchParams.set("empty_cart", "true");
+    else u.searchParams.delete("empty_cart");
+
+    if (Number.isFinite(qty) && qty > 1) u.searchParams.set("quantity", String(qty));
+    else u.searchParams.delete("quantity");
+
+    return u.toString().replace(/%7C/gi, "|");
+  } catch (e) {
+    return String(url);
+  }
+}
+
+function requireTopupCustomerIccid() {
+  const customerIccid = normalizeIccid(topupState.customerIccid || document.getElementById("topupIccid")?.value || "");
+  if (customerIccid.length < 18) {
+    alert("הקלד ICCID מלא של הלקוח לפני יצירת קישור או הזמנה.");
+    return "";
+  }
+  topupState.customerIccid = customerIccid;
+  topupState.iccid = customerIccid;
+  try { localStorage.setItem("simtlv_topup_customer_iccid_20260529", customerIccid); } catch (e) {}
+  return customerIccid;
+}
+
+function openTopupCustomerLink(rawUrl, qty = 1) {
+  const customerIccid = requireTopupCustomerIccid();
+  if (!customerIccid) return;
+  window.open(buildTopupCheckoutUrl(rawUrl, qty, cartSettings.emptyCart, customerIccid), "_blank");
+}
+
+function copyTopupCustomerLink(rawUrl, qty = 1) {
+  const customerIccid = requireTopupCustomerIccid();
+  if (!customerIccid) return;
+  copyText(buildTopupCheckoutUrl(rawUrl, qty, cartSettings.emptyCart, customerIccid));
+}
+
+function registerTopupPackage(pkg, result) {
+  const profile = getTopupProfile();
+  const selectedKey = profile.id === "psim_v1" ? "EUROPE" : String(getSelectedTopupZone() || "zone");
+  const key = ["topup", profile.id, selectedKey, pkg.base?.productId || "noid", pkg.dataGB, pkg.validityDays]
+    .join("_")
+    .replace(/[^a-zA-Z0-9_\-]/g, "_");
+  orderPackageRegistry[key] = { simType: "topup", pkg, result };
+  return key;
+}
+
+function setTopupOrderQuantity(key) {
+  const entry = orderPackageRegistry[key];
+  if (!entry) return;
+
+  // Batch mode: one click adds a line per pasted ICCID.
+  const batch = topupState.batchMode ? (topupState.batchIccids || []) : null;
+  if (topupState.batchMode && (!batch || !batch.length)) {
+    alert("הדבק לפחות ICCID אחד תקין (18+ ספרות) בתיבת המרובה.");
+    return;
+  }
+  const iccids = batch && batch.length ? batch : [requireTopupCustomerIccid()].filter(Boolean);
+  if (!iccids.length) return;
+
+  const input = document.getElementById(`qty_${key}`);
+  const qty = parseInt(input?.value, 10);
+
+  if (!Number.isFinite(qty) || qty <= 0) {
+    iccids.forEach(ic => {
+      orderBuilderItems = orderBuilderItems.filter(x => x.key !== `${key}::${ic}`);
+    });
+    renderAll();
+    return;
+  }
+
+  const { pkg } = entry;
+  const variant = chooseOrderVariant(pkg, qty);
+  if (!variant.checkoutUrl) {
+    alert("אין קישור טופאפ לחבילה הזו");
+    return;
+  }
+
+  const profile = getTopupProfile();
+  iccids.forEach(customerIccid => {
+    // Identify the cart line by package + ICCID, so topping up several
+    // different cards with the same package adds separate lines.
+    const itemKey = `${key}::${customerIccid}`;
+    orderBuilderItems = orderBuilderItems.filter(x => x.key !== itemKey);
+    const label = `טופאפ ${profile.short} · ${pkg.dataGB}GB / ${pkg.validityDays} ימים · ICCID ${shortIccid(customerIccid)} ×${qty}`;
+    orderBuilderItems.push({
+      key: itemKey,
+      simType: "topup",
+      topup: true,
+      preserveUrl: true,
+      dataGB: pkg.dataGB,
+      validityDays: pkg.validityDays,
+      qty,
+      label,
+      checkoutUrl: variant.checkoutUrl,
+      productId: variant.productId,
+      isBase: variant.isBase,
+      isos: [],
+      perUnitILS: variant.perUnitILS,
+      totalILS: variant.totalILS,
+      source: variant.source,
+      topupIccid: customerIccid,
+      topupProfile: profile.id
+    });
+  });
+
+  orderBuilderItems.sort((a,b) => {
+    const rank = { physical_sim: 1, esim: 2, topup: 3 };
+    const ra = rank[a.simType] || 9;
+    const rb = rank[b.simType] || 9;
+    if (ra !== rb) return ra - rb;
+    if ((a.topupIccid || "") !== (b.topupIccid || "")) return String(a.topupIccid || "").localeCompare(String(b.topupIccid || ""));
+    return Number(a.dataGB || 0) - Number(b.dataGB || 0);
+  });
+
+  renderAll();
+}
+
+function renderTopupPurchaseLinks(pkg, result) {
+  const key = registerTopupPackage(pkg, result);
+  const curIccid = normalizeIccid(topupState.customerIccid || "");
+  const qtyValue = (curIccid ? getBuilderQtyForKey(`${key}::${curIccid}`) : "") || "1";
+  const bestDeal = getBestDeal(pkg);
+
+  const baseUrlJson = JSON.stringify(pkg.base?.checkoutUrl || "");
+  // Deal URLs are bundle products that already include the full quantity —
+  // pass qty 1 so buildTopupCheckoutUrl doesn't multiply the bundle.
+  const dealSlot = bestDeal
+    ? `<span class="tl-deal-label" title="דיל ${bestDeal.quantity}× — ₪${bestDeal.perUnitILS} לכרטיס">₪${bestDeal.perUnitILS}/יח׳</span>
+       <button class="lk-open" onclick='openTopupCustomerLink(${escapeHtml(JSON.stringify(bestDeal.checkoutUrl))}, 1)' title="פתח קישור דיל">🔗</button>
+       <button class="lk-copy" onclick='copyTopupCustomerLink(${escapeHtml(JSON.stringify(bestDeal.checkoutUrl))}, 1)' title="העתק קישור דיל">📋</button>`
+    : "";
+
+  return `
+      <span class="tl-deal">${dealSlot}</span>
+      <button class="lk-open" ${pkg.base?.checkoutUrl ? "" : "disabled"} onclick='openTopupCustomerLink(${escapeHtml(baseUrlJson)}, 1)' title="פתח קישור טופאפ עם ICCID הלקוח">🔗</button>
+      <button class="lk-copy" ${pkg.base?.checkoutUrl ? "" : "disabled"} onclick='copyTopupCustomerLink(${escapeHtml(baseUrlJson)}, 1)' title="העתק קישור טופאפ עם ICCID הלקוח">📋</button>
+      <input class="tl-qty" id="qty_${key}" type="number" min="0" step="1" value="${escapeHtml(qtyValue)}" placeholder="1"
+             title="כמות להזמנה המשולבת" onkeydown="if(event.key==='Enter'){setTopupOrderQuantity('${key}')}" />
+      <button class="lk-set" onclick="setTopupOrderQuantity('${key}')" title="הוסף להזמנה המשולבת">קבע</button>
+  `;
+}
+
+function renderTopupMeta(result) {
+  const info = result.checkoutInfo || {};
+  const requested = (result.requestedCountries || []).map(c => c.iso).join("|");
+  const countriesLabel = (result.requestedCountries || []).map(c => c.he).join(" | ");
+  const searchUrlJson = JSON.stringify(result.requestUrl || "");
+  const customerIccid = normalizeIccid(topupState.customerIccid || "");
+  const sourceLabel = result.source === "manual_global_esim_prices_no_topup_scan"
+    ? "מקור: מחירי eSIM ידניים קיימים, בלי סריקת טופאפ"
+    : result.profileId === "psim_v2"
+      ? `מקור: סריקת V2 אחת לאזור ${String(result.zone ?? getSelectedTopupZone() ?? "")}`
+      : result.profileId === "psim_v1"
+        ? "מקור: סריקת V1 גרמניה בלבד"
+        : "מקור: קטלוג טופאפ";
+
+  // All technical detail collapses into one tooltip instead of a pill row.
+  const tip = [
+    result.profileLabel || result.kind || getTopupProfile().label,
+    sourceLabel,
+    result.probeIccid ? `probe: ${shortIccid(result.probeIccid)}` : "",
+    countriesLabel ? `מדינות: ${countriesLabel}` : "",
+    requested ? `selected: ${requested}` : "",
+    (result.zone !== null && result.zone !== undefined) ? `zone: ${result.zone}` : "",
+    info.flyCountries ? `fly_countries=${info.flyCountries}` : "",
+    info.productZone ? `product_zone=${info.productZone}` : "",
+    info.physicalSimType ? info.physicalSimType : "",
+  ].filter(Boolean).join("\n");
+
+  return `
+    <div class="topup-meta-bar">
+      <button class="info-tip" data-tip="${escapeHtml(tip)}">i</button>
+      <span class="topup-meta-label ${customerIccid ? 'ok' : ''}">${customerIccid ? `✓ ICCID ${escapeHtml(shortIccid(customerIccid))}` : "הקלד ICCID לקוח להזמנה"}</span>
+      ${result.requestUrl ? `<button class="global-copy-btn" onclick='copyText(${escapeHtml(searchUrlJson)})' title="העתק API URL">📋 API URL</button>` : ""}
+    </div>
+  `;
+}
+
+function renderTopupVersionSelector() {
+  ensureAutoTopupState();
+  const profile = getTopupProfile();
+  const options = Object.values(TOPUP_VERSION_PROFILES).map(p =>
+    `<option value="${escapeHtml(p.id)}" ${p.id === profile.id ? "selected" : ""}>${escapeHtml(p.label)}</option>`
+  ).join("");
+  return `
+    <div class="topup-select-wrap version-select-wrap">
+      <select id="topupVersionSelect" onchange="setTopupVersion(this.value)" title="סוג SIM">${options}</select>
+    </div>
+  `;
+}
+
+
+function clearTopupCacheForSelected() {
+  ensureAutoTopupState();
+  const zone = getSelectedTopupZone();
+  if (zone !== null) delete topupState.catalogCache[getTopupCatalogKeyForZone("psim_v2", zone)];
+  if (!getV1DisallowedCountries(getSelectedTopupCountries()).length) delete topupState.catalogCache["psim_v1|europe:DE"];
+  topupState.catalogResult = null;
+  topupState.result = null;
+  topupState.preloadMessage = "";
+  persistTopupCatalogCache();
+  renderAll();
+}
+
+function renderTopupScannerPanel() {
+  if (!selected.length) return "";
+
+  ensureAutoTopupState();
+  const profile = getTopupProfile();
+  const result = getCurrentTopupCatalog();
+  const countryNames = selected.map(c => c.name.he).join(", ");
+  const stats = getTopupPreloadStats();
+  const validation = validateTopupSelectionForProfile(profile);
+
+  const status = topupState.loading
+    ? `<div class="topup-status loading"><span class="topup-mini-spinner"></span><span>טוען קטלוג ${escapeHtml(profile.label)}…</span></div>`
+    : topupState.preloading
+      ? `<div class="topup-status loading"><span class="topup-mini-spinner"></span><span>טוען קטלוגים ${escapeHtml(String(topupState.preloadDone))}/${escapeHtml(String(topupState.preloadTotal))}…</span></div>`
+      : topupState.autoPreloading && !result
+        ? `<div class="topup-status loading"><span class="topup-mini-spinner"></span><span>טעינה אוטומטית ברקע. אפשר כבר לבחור סוג ולהקליד ICCID.</span></div>`
+        : topupState.error
+          ? `<div class="topup-status error">${escapeHtml(topupState.error)}</div>`
+          : validation
+            ? `<div class="topup-status error">${escapeHtml(validation)}</div>`
+            : !result
+              ? `<div class="topup-status">הקטלוג ייטען אוטומטית — אפשר לבחור סוג ולהקליד ICCID.</div>`
+              : "";
+
+  const resultHtml = result ? `
+    ${renderTopupMeta(result)}
+    <div class="topup-grid">${renderTopupProducts(result)}</div>
+  ` : "";
+
+  return `
+    <div class="block topup-scanner-card">
+      <div class="topup-head">
+        <div>
+          <h3>טופאפ מהיר <span class="topup-head-countries">— ${escapeHtml(countryNames)}</span> <span class="zone-pill">${escapeHtml(profile.label)}</span>
+            <span class="topup-cache-stat ${stats.cached === stats.total ? 'good' : ''}">מוכן ${stats.cached}/${stats.total}</span>
+          </h3>
+        </div>
+        <div class="block-actions">
+          ${simplifyToggle("topup")}
+          <button class="copy-btn" onclick="preloadTopupsForSelected(true)" title="רענן קטלוג טופאפ">🔄 רענן</button>
+        </div>
+      </div>
+
+      ${topupState.preloadMessage ? `<div class="topup-preload-progress ${topupState.preloadErrors ? 'error' : ''}">${escapeHtml(topupState.preloadMessage)}${topupState.preloadErrorList?.length ? `<br>${escapeHtml(topupState.preloadErrorList.slice(0, 4).join(" · "))}` : ""}</div>` : ""}
+
+      <div class="topup-controls">
+        ${renderTopupVersionSelector()}
+        ${topupState.batchMode ? "" : `<input id="topupIccid" class="topup-iccid-input" type="text" inputmode="numeric" autocomplete="off"
+               value="${escapeHtml(topupState.customerIccid || '')}"
+               placeholder="${escapeHtml(profile.customerLabel)}"
+               oninput="setTopupCustomerIccid(this.value)" />`}
+        <button class="topup-batch-toggle ${topupState.batchMode ? 'is-on' : ''}" onclick="toggleTopupBatchMode()"
+                title="מצב מרובה — הדבק כמה ICCIDים, שורה לכל כרטיס">📚 מרובה${topupState.batchMode && topupState.batchIccids.length ? ` · ${topupState.batchIccids.length}` : ""}</button>
+        <button class="topup-scan-btn" onclick="preloadTopupsForSelected(false)" title="הצג תוכניות">🔍</button>
+      </div>
+      ${topupState.batchMode ? `
+      <textarea id="topupIccidBatch" class="topup-batch-area" rows="3"
+                placeholder="הדבק ICCID אחד בכל שורה — קבע יוסיף שורת עגלה לכל כרטיס"
+                oninput="setTopupBatchIccids(this.value)">${escapeHtml(topupState.batchRaw || "")}</textarea>` : ""}
+
+      ${status}
+      ${resultHtml}
+    </div>
+  `;
+}
+
+function buildOrderItemUrl(item, index) {
+  const isFirst = index === 0;
+  // A "deal" checkout URL points at a bundle product (e.g. a pair) that already
+  // contains the full quantity — adding quantity=N would order N bundles.
+  const isDeal = item.source === "deal" || item.isBase === false;
+  const urlQty = isDeal ? 1 : item.qty;
+  if (item.preserveUrl || item.topup) {
+    return buildTopupCheckoutUrl(item.checkoutUrl, urlQty, isFirst && cartSettings.emptyCart, item.topupIccid || topupState.customerIccid || topupState.iccid || "");
+  }
+  return buildCheckoutUrl(item.checkoutUrl, item.isBase, item.isos || selected.map(c => c.iso), urlQty, isFirst && cartSettings.emptyCart);
+}
+
+function getGeneratedOrderLink() {
+  const payload = {
+    version: 4,
+    emptyCart: cartSettings.emptyCart,
+    items: orderBuilderItems.map(item => ({
+      label: item.label,
+      checkoutUrl: item.checkoutUrl,
+      qty: item.qty,
+      isBase: item.isBase,
+      isos: item.isos,
+      totalILS: item.totalILS,
+      preserveUrl: !!item.preserveUrl,
+      topup: !!item.topup,
+      topupIccid: item.topupIccid || "",
+      topupProfile: item.topupProfile || ""
+    }))
+  };
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set(ORDER_PAYLOAD_PARAM, encodeOrderPayload(payload));
+  return url.toString();
+}
+
+function renderAll() {
+  const resultsEl = document.getElementById("results");
+  const cartEl = document.getElementById("cart");
+  if (!resultsEl) return;
+
+  if (!selected.length) {
+    resultsEl.innerHTML =
+      `<div class="center-empty">
+        <span class="ce-emoji">🌍</span>
+        <h2>בחר מדינה כדי להתחיל</h2>
+        <p>חפש מדינה בסרגל למעלה. המחירים נטענים אוטומטית, וההשוואה תופיע כאן.</p>
+      </div>`;
+    if (cartEl) cartEl.innerHTML = window.__renderEmptyCart();
+    if (window.__updateCartFab) window.__updateCartFab();
+    persistSession();
+    return;
+  }
+
+  orderPackageRegistry = {};
+  loadPersistedTopupCache();
+  ensureAutoTopupState();
+
+  // Build only the active tab.
+  let tabContent = "";
+  if (activeTab === "basic") {
+    tabContent = renderZoneNote() + renderGlobalPlans();
+  } else if (activeTab === "gigaboost") {
+    tabContent = renderZoneNote() + renderGigaboostChooser() + renderPhysicalPlans() + renderEsimPlans();
+  } else if (activeTab === "copy") {
+    tabContent =
+      `<div class="ref-strip">` +
+      renderCreditPricing() +
+      renderPhysical() +
+      renderWallet() +
+      renderCustomAmount() +
+      `</div>`;
+  } else if (activeTab === "topup") {
+    tabContent = renderTopupScannerPanel();
+  }
+
+  resultsEl.innerHTML = `<div class="results-grid">` + tabContent + `</div>`;
+
+  // Keep the tab buttons' active state in sync (e.g. after session restore).
+  document.querySelectorAll(".tab-btn").forEach(b =>
+    b.classList.toggle("is-active", b.dataset.tab === activeTab)
+  );
+
+  if (cartEl) {
+    const cartHtml = renderOrderBuilderPanel();
+    cartEl.innerHTML = cartHtml && cartHtml.trim() ? cartHtml : window.__renderEmptyCart();
+  }
+  if (window.__updateCartFab) window.__updateCartFab();
+
+  updateMasterSimplifyLabel();
+  scheduleAutoEnsureTopupForSelection();
+  persistSession();
+}
+
+
+
+</script>
+
+</body>
+</html>
